@@ -1,6 +1,6 @@
 //! Cost analysis and recommendations generation
 
-use crate::types::{Operation, ModelPricing, ModelComparison, ModelCostDiff};
+use crate::types::{Operation, ModelPricing, ModelComparison, ModelCostDiff, BillingPlan};
 use chrono_tz::Tz;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -10,6 +10,134 @@ pub struct CostAnalyzer;
 impl CostAnalyzer {
     pub fn new() -> Self {
         Self
+    }
+
+    /// Get effective per-token cost by billing plan
+    /// CRITICAL: Plans have 200%+ pricing variance
+    pub fn billing_plan_cost(plan: BillingPlan, model: &str) -> (f64, f64) {
+        match plan {
+            // API pricing (pay-per-token, most expensive)
+            BillingPlan::Api => {
+                match model {
+                    "claude-3-5-sonnet" => (3.00, 15.00),
+                    "claude-3-5-haiku" => (0.80, 4.00),
+                    "claude-3-opus" => (15.00, 75.00),
+                    _ => (3.00, 15.00),
+                }
+            }
+            // Pro plan ($20/month fixed, unlimited within limits)
+            // Effective cost depends on usage volume
+            BillingPlan::Pro => {
+                // $20/month ÷ typical monthly token budget
+                // Roughly equivalent to $1.50/$7.50 if using 13M tokens/month
+                match model {
+                    "claude-3-5-sonnet" => (1.50, 7.50),
+                    "claude-3-5-haiku" => (0.40, 2.00),
+                    "claude-3-opus" => (7.50, 37.50),
+                    _ => (1.50, 7.50),
+                }
+            }
+            // Max plan ($200/month fixed, higher limits)
+            // Effective cost much lower at high usage
+            BillingPlan::Max => {
+                // $200/month ÷ higher monthly token budget
+                // Roughly equivalent to $0.60/$3.00 if using 333M tokens/month
+                match model {
+                    "claude-3-5-sonnet" => (0.60, 3.00),
+                    "claude-3-5-haiku" => (0.16, 0.80),
+                    "claude-3-opus" => (3.00, 15.00),
+                    _ => (0.60, 3.00),
+                }
+            }
+            // Enterprise (custom negotiated, typically 20-50% discount)
+            BillingPlan::Enterprise => {
+                // Assume 30% discount from API pricing
+                match model {
+                    "claude-3-5-sonnet" => (2.10, 10.50),  // 30% discount
+                    "claude-3-5-haiku" => (0.56, 2.80),
+                    "claude-3-opus" => (10.50, 52.50),
+                    _ => (2.10, 10.50),
+                }
+            }
+        }
+    }
+
+    /// Calculate plan comparison for cost optimization
+    /// Shows: "If you switched to Max, you'd save $X/month"
+    pub fn plan_comparison(&self, operations: &[Operation]) -> anyhow::Result<serde_json::Value> {
+        // Estimate monthly cost by plan
+        let mut total_input = 0u64;
+        let mut total_output = 0u64;
+
+        for op in operations {
+            total_input += op.tokens_input as u64;
+            total_output += op.tokens_output as u64;
+        }
+
+        // Scale to monthly if less than a month of data
+        let hours_elapsed = if operations.len() > 0 {
+            (operations.last().unwrap().timestamp - operations.first().unwrap().timestamp).num_hours()
+        } else {
+            24
+        };
+        let days_elapsed = (hours_elapsed as f64 / 24.0).max(1.0);
+        let monthly_input = total_input as f64 * (30.0 / days_elapsed);
+        let monthly_output = total_output as f64 * (30.0 / days_elapsed);
+
+        // Get model from first operation
+        let model = operations.first()
+            .map(|op| op.model.as_str())
+            .unwrap_or("claude-3-5-sonnet");
+
+        let mut comparisons = Vec::new();
+        let plans = vec![
+            BillingPlan::Api,
+            BillingPlan::Pro,
+            BillingPlan::Max,
+            BillingPlan::Enterprise,
+        ];
+
+        let mut best_plan = BillingPlan::Api;
+        let mut best_cost = f64::MAX;
+
+        for plan in plans {
+            let (in_rate, out_rate) = Self::billing_plan_cost(plan, model);
+            let monthly_cost = (monthly_input * in_rate + monthly_output * out_rate) / 1_000_000.0;
+
+            // Add monthly base for Pro/Max
+            let total_cost = match plan {
+                BillingPlan::Pro => monthly_cost + 20.0,
+                BillingPlan::Max => monthly_cost + 200.0,
+                _ => monthly_cost,
+            };
+
+            if total_cost < best_cost {
+                best_cost = total_cost;
+                best_plan = plan;
+            }
+
+            comparisons.push(serde_json::json!({
+                "plan": format!("{:?}", plan),
+                "monthly_cost": (total_cost * 100.0).round() / 100.0,
+                "per_token_input": in_rate,
+                "per_token_output": out_rate,
+            }));
+        }
+
+        Ok(serde_json::json!({
+            "current_usage_monthly": {
+                "tokens_input": (monthly_input as u64),
+                "tokens_output": (monthly_output as u64),
+            },
+            "plan_comparison": comparisons,
+            "recommended_plan": format!("{:?}", best_plan),
+            "recommended_cost": (best_cost * 100.0).round() / 100.0,
+            "savings_message": format!(
+                "Best plan: {:?} at ${:.2}/month",
+                best_plan,
+                best_cost
+            ),
+        }))
     }
 
     /// Convert UTC timestamp to user's local date string using their timezone

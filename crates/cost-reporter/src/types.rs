@@ -4,6 +4,20 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use std::collections::HashMap;
 
+/// Billing plan/tier for Claude
+/// CRITICAL: Pricing varies dramatically by plan
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum BillingPlan {
+    /// Claude API (pay-per-token, highest per-token cost)
+    Api,
+    /// Claude Pro ($20/month, includes usage limits)
+    Pro,
+    /// Claude Max ($200/month, higher limits)
+    Max,
+    /// Enterprise (custom negotiated pricing, usually 20-50% discount)
+    Enterprise,
+}
+
 /// Data source types for MCP operations (database reads, S3 access, etc)
 /// CRITICAL: These are massive token consumers - 100x-1000x more than simple file reads
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -202,10 +216,14 @@ pub struct Operation {
     pub user_timezone: Option<String>,
     /// Cloud region if using provider (e.g., "us-east-1", "eu-west-1", "asia-southeast1")
     /// CRITICAL: Cloud pricing varies by region (10-30% variance)
-    /// Bedrock: us-east-1, us-west-2, eu-west-1, ap-northeast-1, etc.
-    /// Azure: eastus, westeurope, southeastasia, etc.
-    /// GCP: us-central1, europe-west1, asia-east1, etc.
     pub cloud_region: Option<String>,
+    /// Billing plan when operation occurred (Pro/Max/Enterprise/Api)
+    /// CRITICAL: Pricing varies 200%+ between plans
+    /// Pro: \$20/month fixed (unlimited usage within limits)
+    /// Max: \$200/month fixed (higher limits)
+    /// Enterprise: Custom negotiated (typically 20-50% discount)
+    /// Api: Pay-per-token (highest cost per token)
+    pub billing_plan: Option<BillingPlan>,
     /// User who triggered this (if applicable)
     pub user: Option<String>,
     /// Tags for filtering
@@ -234,6 +252,7 @@ impl Operation {
             timestamp: chrono::Utc::now(),
             user_timezone: None,
             cloud_region: None,
+            billing_plan: None,
             user: None,
             tags: HashMap::new(),
             instruction_files: Vec::new(),
@@ -274,6 +293,11 @@ impl Operation {
 
     pub fn with_cloud_region(mut self, region: String) -> Self {
         self.cloud_region = Some(region);
+        self
+    }
+
+    pub fn with_billing_plan(mut self, plan: BillingPlan) -> Self {
+        self.billing_plan = Some(plan);
         self
     }
 

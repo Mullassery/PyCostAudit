@@ -126,4 +126,12 @@ impl CostReporter {
         let analyzer = CostAnalyzer::new();
         Ok(analyzer.forecast_quarterly(&operations)?)
     }
+
+    /// Compare billing plans (Pro vs Max vs Enterprise vs API)
+    /// Shows: "If you switched to Max, you'd save $X/month"
+    pub async fn compare_billing_plans(&self) -> anyhow::Result<serde_json::Value> {
+        let operations = self.storage.get_operations_since_hours(168).await?; // 1 week of data
+        let analyzer = CostAnalyzer::new();
+        Ok(analyzer.plan_comparison(&operations)?)
+    }
 }

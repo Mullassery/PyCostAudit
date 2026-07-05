@@ -40,6 +40,7 @@ impl PyCostReporter {
         mcp_name: Option<&str>,
         user_timezone: Option<&str>,
         cloud_region: Option<&str>,
+        billing_plan: Option<&str>,
     ) -> PyResult<String> {
         let op_type = match operation_type {
             "api_call" => OperationType::ApiCall,
@@ -81,6 +82,15 @@ impl PyCostReporter {
         }
         if let Some(region) = cloud_region {
             op.cloud_region = Some(region.to_string());
+        }
+        if let Some(plan) = billing_plan {
+            op.billing_plan = match plan {
+                "api" => Some(cost_reporter::BillingPlan::Api),
+                "pro" => Some(cost_reporter::BillingPlan::Pro),
+                "max" => Some(cost_reporter::BillingPlan::Max),
+                "enterprise" => Some(cost_reporter::BillingPlan::Enterprise),
+                _ => None,
+            };
         }
 
         let rt = tokio::runtime::Handle::current();
@@ -194,6 +204,16 @@ impl PyCostReporter {
         let result = rt.block_on(async {
             let reporter = self.reporter.lock().await;
             reporter.forecast_quarterly().await
+        }).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        Ok(serde_json::to_string(&result).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?)
+    }
+
+    /// Compare billing plans (Pro vs Max vs Enterprise vs API)
+    pub fn compare_billing_plans(&self) -> PyResult<String> {
+        let rt = tokio::runtime::Handle::current();
+        let result = rt.block_on(async {
+            let reporter = self.reporter.lock().await;
+            reporter.compare_billing_plans().await
         }).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
         Ok(serde_json::to_string(&result).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?)
     }

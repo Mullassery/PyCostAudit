@@ -120,6 +120,7 @@ class CostReporter:
         mcp_name: str = None,
         user_timezone: str = None,
         cloud_region: str = None,
+        billing_plan: str = None,
     ) -> dict:
         """
         Track a single operation (called silently in background).
@@ -155,6 +156,12 @@ class CostReporter:
                 Bedrock: us-east-1, us-west-2, eu-west-1, ap-northeast-1
                 Azure: eastus, westeurope, southeastasia
                 GCP: us-central1, europe-west1, asia-east1
+            billing_plan: Billing plan/tier for this operation ("api", "pro", "max", "enterprise")
+                CRITICAL: Pricing varies 200%+ between plans
+                api: Pay-per-token (highest cost)
+                pro: \$20/month fixed
+                max: \$200/month fixed (best for high volume)
+                enterprise: Custom negotiated (usually 20-50% discount)
 
         Returns:
             Cost data with multipliers applied
@@ -168,7 +175,8 @@ class CostReporter:
                 file_source="pdf_url",  # 3.6x multiplier
                 user="alice",
                 user_timezone="America/New_York",  # Daily reset at midnight EST
-                cloud_region="eu-west-1"  # EU premium: +15% on Bedrock
+                cloud_region="eu-west-1",  # EU premium: +15% on Bedrock
+                billing_plan="max"  # User on Max plan: \$200/month fixed
             )
             print(f"Cost: ${cost['cost_usd']}")
         """
@@ -185,6 +193,7 @@ class CostReporter:
             mcp_name=mcp_name,
             user_timezone=user_timezone,
             cloud_region=cloud_region,
+            billing_plan=billing_plan,
         )
         return json.loads(result)
 
@@ -338,6 +347,53 @@ class CostReporter:
             tokens_input=tokens_input,
             tokens_output=tokens_output
         )
+        return json.loads(result)
+
+    def compare_billing_plans(self) -> dict:
+        """
+        Compare billing plans to find optimal cost tier.
+
+        Returns cost for each plan based on current usage patterns:
+        - API: Pay-per-token (most expensive for high volume)
+        - Pro: \$20/month fixed (good for low-moderate volume)
+        - Max: \$200/month fixed (best for high volume)
+        - Enterprise: Custom pricing (typically 20-50% discount)
+
+        Returns:
+            Plan comparison with:
+            - current_usage_monthly: Projected monthly tokens
+            - plan_comparison: Array of plans with monthly costs
+            - recommended_plan: Which plan is cheapest
+            - savings_message: "Best plan: Max at \$45/month"
+
+        Example:
+            plans = reporter.compare_billing_plans()
+            print(f"Monthly usage: {plans['current_usage_monthly']['tokens_input']} tokens")
+            print(f"Recommended: {plans['recommended_plan']} at \\${plans['recommended_cost']}/month")
+
+            for plan in plans['plan_comparison']:
+                print(f"  {plan['plan']}: \\${plan['monthly_cost']}")
+
+        ⚠️ PLAN SWITCHING IMPACT:
+
+            Current (API): \$2,850/month for 1B tokens/month
+            → Switch to Pro: \$20/month (save \$2,830!)
+            → Switch to Max: \$200/month (save \$2,650!)
+            → Switch to Enterprise: ~\$2,000/month (negotiate 30% discount)
+
+        Breakeven points:
+            Pro (\$20) ≈ 6.7M tokens/month of Sonnet
+            Max (\$200) ≈ 67M tokens/month of Sonnet
+            Enterprise ≈ 1B+ tokens/month (negotiate custom rate)
+
+        ⚠️ LIMITATIONS:
+            - Effective cost assumes you use full plan limits
+            - Pro/Max have usage caps (not unlimited)
+            - Enterprise pricing is unique per contract
+            - This comparison uses published rates, not your negotiated rate
+            - Team multi-channel costs not included (use compare_models for provider breakdown)
+        """
+        result = self._core.compare_billing_plans()
         return json.loads(result)
 
     def forecast_quarterly(self) -> dict:
