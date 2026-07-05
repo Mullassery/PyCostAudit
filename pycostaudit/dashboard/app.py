@@ -5,7 +5,7 @@ Provides REST API for cost tracking, budgeting, and alerting.
 
 from fastapi import FastAPI, Depends, HTTPException, WebSocket, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy import create_engine, desc, and_
 from sqlalchemy.orm import sessionmaker, Session
 from datetime import datetime, timedelta
@@ -59,7 +59,7 @@ def get_db():
 
 
 def get_current_user(
-    credentials: HTTPAuthCredentials = Depends(security),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
     """Get current authenticated user"""
