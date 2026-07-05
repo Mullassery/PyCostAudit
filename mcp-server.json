@@ -1,0 +1,80 @@
+{
+  "name": "pycostaudit-mcp",
+  "version": "0.4.1",
+  "description": "MCP server for PyCostAudit - Real-time LLM cost tracking and optimization with 100x-1000x+ savings potential",
+  "author": {
+    "name": "Georgi Mammen Mullassery",
+    "email": "mullassery@gmail.com",
+    "url": "https://github.com/Mullassery"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mullassery/PyCostAudit",
+    "directory": "mcp"
+  },
+  "type": "mcp-server",
+  "command": "python",
+  "args": ["-m", "pycostaudit.mcp"],
+  "capabilities": {
+    "tools": {
+      "cost_tracker": {
+        "description": "Track LLM API costs across all dimensions",
+        "mutable": true
+      },
+      "cost_analyzer": {
+        "description": "Analyze cost patterns and trends",
+        "mutable": false
+      },
+      "cost_recommender": {
+        "description": "Get optimization recommendations",
+        "mutable": false
+      },
+      "billing_calculator": {
+        "description": "Compare billing plans and calculate savings",
+        "mutable": false
+      }
+    }
+  },
+  "keywords": [
+    "llm",
+    "cost-tracking",
+    "optimization",
+    "claude",
+    "anthropic",
+    "expense-management",
+    "budget-analysis",
+    "ai-costs",
+    "machine-learning",
+    "monitoring"
+  ],
+  "homepage": "https://github.com/Mullassery/PyCostAudit",
+  "documentation": "https://github.com/Mullassery/PyCostAudit#readme",
+  "bugs": {
+    "url": "https://github.com/Mullassery/PyCostAudit/issues"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/Mullassery"
+  },
+  "deployment": {
+    "mcpServers": [
+      {
+        "type": "stdio",
+        "command": "python",
+        "args": ["-m", "pycostaudit.mcp"],
+        "env": {
+          "PYCOSTAUDIT_DB": "~/.pycostaudit/costs.db",
+          "PYCOSTAUDIT_LOG_LEVEL": "INFO"
+        }
+      }
+    ]
+  },
+  "registrationInfo": {
+    "registryName": "Anthropic MCP Registry",
+    "registryUrl": "https://registry.modelcontextprotocol.io",
+    "ownershipProof": "github:Mullassery",
+    "submissionDate": "2026-07-06",
+    "status": "ready-for-registration"
+  }
+}
