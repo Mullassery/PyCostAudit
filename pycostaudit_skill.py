@@ -60,9 +60,12 @@ class ClaudeCodeSkill:
             "total_tokens": tokens_input + tokens_output,
         }
 
-        # Estimate cost (Claude Opus pricing)
-        input_cost = (tokens_input / 1_000_000) * 15.00
-        output_cost = (tokens_output / 1_000_000) * 75.00
+        # Estimate cost (Claude Pro pricing)
+        # Update this based on your plan:
+        # Claude Pro: $3.00 input / $15.00 output
+        # Claude Opus 4.8: $15.00 input / $75.00 output
+        input_cost = (tokens_input / 1_000_000) * 3.00
+        output_cost = (tokens_output / 1_000_000) * 15.00
         cost_data["estimated_cost"] = input_cost + output_cost
 
         self.costs.append(cost_data)
