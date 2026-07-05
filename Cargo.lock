@@ -162,6 +162,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "claudeaudit"
+version = "0.4.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "cost-reporter",
+ "pyo3",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "const-oid"
 version = "0.9.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1059,19 +1072,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "pycost-reporter"
-version = "0.4.0"
-dependencies = [
- "anyhow",
- "chrono",
- "cost-reporter",
- "pyo3",
- "serde",
- "serde_json",
- "tokio",
 ]
 
 [[package]]

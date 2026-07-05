@@ -1,10 +1,10 @@
-# CLAUDE.md — PyCostReporter
+# CLAUDE.md — ClaudeAudit
 
 This file provides guidance to Claude Code when working with this repository.
 
 ## What We're Building
 
-**PyCostReporter** — Real-time cost optimizer for Claude and other LLM platforms. Answers: "Why does my LLM usage cost so much, and what can I do about it?"
+**ClaudeAudit** — Comprehensive cost auditor for Claude API spending. Answers: "Where is my Claude spending really going, and what can I optimize?"
 
 **Core insight:** Users can't optimize what they can't measure. We measure, then recommend optimizations.
 
@@ -30,7 +30,7 @@ This file provides guidance to Claude Code when working with this repository.
 ### Layer 2: Python Wrapper (`python/src/`)
 **Easy-to-use API**
 
-- `__init__.py` — Main `PyCostReporter` class
+- `__init__.py` — Main `ClaudeAudit` class
 - `api.py` — REST API for dashboards/reports
 - `cli.py` — Command-line interface
 - `alerts.py` — Slack/webhook notifications
@@ -43,9 +43,9 @@ This file provides guidance to Claude Code when working with this repository.
 ### Communication Flow
 
 ```
-LLM operation (Claude API, MCP, file read, etc.)
+LLM operation (Claude API, GitHub, MCP, file read, etc.)
     ↓
-PyCostReporter tracks (Python API)
+ClaudeAudit audits (Python API)
     ↓
 Rust Core calculates cost (PyO3 FFI)
     ↓
@@ -145,17 +145,18 @@ let cost = tracker.track_operation(OperationCost {
 })?;
 ```
 
-**Get daily breakdown:**
+**Get daily audit breakdown:**
 ```python
 # In Python:
-breakdown = reporter.analyze_daily()
-# Returns: {"by_operation_type": {...}, "by_file_format": {...}, ...}
+auditor = ClaudeAudit(db_path="~/.claudeaudit/costs.db")
+breakdown = auditor.analyze_daily()
+# Returns: {"by_operation_type": {...}, "by_github": {...}, ...}
 ```
 
 **Get plan recommendations:**
 ```python
 # In Python:
-plans = reporter.compare_billing_plans()
+plans = auditor.compare_billing_plans()
 # Returns: {"recommended_plan": "Max", "savings": 2650.00}
 ```
 

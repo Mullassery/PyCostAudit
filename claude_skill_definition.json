@@ -1,11 +1,11 @@
 {
-  "name": "cost-reporter",
-  "version": "0.1.0",
-  "displayName": "CostReporter: Real-time LLM Cost Tracking",
+  "name": "claudeaudit",
+  "version": "0.4.0",
+  "displayName": "ClaudeAudit: Comprehensive Claude Cost Auditing",
   "description": "Track and optimize LLM costs across all operations, identifying hidden multipliers nobody else measures",
   "author": "Georgi Mammen Mullassery",
   "license": "MIT",
-  "repository": "https://github.com/Mullassery/PyCostReporter",
+  "repository": "https://github.com/Mullassery/ClaudeAudit",
   "capabilities": {
     "tracking": {
       "fileFormatCosts": "Tracks cost multipliers for file sources (CSV vs PDF URL = 36x)",
@@ -136,12 +136,12 @@
     }
   },
   "installation": {
-    "pip": "pip install pycost-reporter",
-    "source": "git clone https://github.com/Mullassery/PyCostReporter.git && cd PyCostReporter && make install"
+    "pip": "pip install claudeaudit",
+    "source": "git clone https://github.com/Mullassery/ClaudeAudit.git && cd ClaudeAudit && make install"
   },
   "documentation": {
-    "quickStart": "https://github.com/Mullassery/PyCostReporter#quick-start",
-    "features": "https://github.com/Mullassery/PyCostReporter#features",
-    "api": "https://github.com/Mullassery/PyCostReporter#api-reference"
+    "quickStart": "https://github.com/Mullassery/ClaudeAudit#quick-start",
+    "features": "https://github.com/Mullassery/ClaudeAudit#features",
+    "api": "https://github.com/Mullassery/ClaudeAudit#api-reference"
   }
 }

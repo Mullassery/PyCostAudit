@@ -1,14 +1,14 @@
-# PyCostReporter
+# ClaudeAudit
 
-[![PyPI version](https://badge.fury.io/py/pycost-reporter.svg)](https://pypi.org/project/pycost-reporter/)
+[![PyPI version](https://badge.fury.io/py/claudeaudit.svg)](https://pypi.org/project/claudeaudit/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![GitHub](https://img.shields.io/badge/GitHub-PyCostReporter-black.svg)](https://github.com/Mullassery/PyCostReporter)
+[![GitHub](https://img.shields.io/badge/GitHub-ClaudeAudit-black.svg)](https://github.com/Mullassery/ClaudeAudit)
 [![Package Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](#)
 
-**The only tool that shows you the 36x hidden costs in Claude spending.**
+**Comprehensive cost audit for Claude API spending — find hidden multipliers nobody else tracks.**
 
-PyCostReporter tracks what no other tool measures: file format multipliers (36x variance), peak/off-peak hour pricing (30% swings), regional pricing (10-30% variance), billing plan differences (200%+ variance), and operation type costs (55x variance).
+ClaudeAudit audits what no other tool measures: file format multipliers (36x variance), GitHub operations (4-12x variance), peak/off-peak hour pricing (30% swings), regional pricing (10-30% variance), billing plan differences (200%+ variance), and operation type costs (55x variance).
 
 > Stop guessing why Claude costs so much. **See exactly where your money goes. Then cut costs by 50-80%.**
 
@@ -29,11 +29,11 @@ You're spending more on Claude than you realize. Not because Claude is expensive
 
 **Most tools show:** "You spent $47 today"
 
-**PyCostReporter shows:** "$32 from PDFs via URL (could be $8.80 from disk) + $15 in off-peak operations you could shift to 2 AM"
+**ClaudeAudit shows:** "$32 from PDFs via URL (could be $8.80 from disk) + $12 from GitHub commits (could batch to save 30%) + $3 in off-peak operations"
 
 ---
 
-## What Makes PyCostReporter Different
+## What Makes ClaudeAudit Different
 
 | Dimension | Tracked | Multiplier | Why It Matters |
 |-----------|---------|-----------|---|
@@ -78,16 +78,16 @@ Result: $1,200 → $375/month. You just kept $10k/year.
 
 ```bash
 # Install
-pip install pycost-reporter
+pip install claudeaudit
 
 # Start tracking
-from pycost_reporter import PyCostReporter
+from claudeaudit import ClaudeAudit
 import os
 
-reporter = PyCostReporter(db_path="~/.pycost_reporter/costs.db")
+audit = ClaudeAudit(db_path="~/.claudeaudit/costs.db")
 
-# Example 1: Track GitHub commit (12x cost multiplier)
-cost = reporter.track_operation(
+# Example 1: Track GitHub commit (12x cost multiplier - BIGGEST COST!)
+operation = cost.track_operation(
     operation_type="github_commit",
     tokens_input=8200,               # Analyzing diffs, tree walk
     tokens_output=450,
@@ -107,7 +107,7 @@ cost = reporter.track_operation(
 print(f"GitHub read cost: ${cost['cost']:.4f} {cost['currency']}")
 
 # Example 3: Track markdown updates (3x cost multiplier)
-cost = reporter.track_operation(
+operation = cost.track_operation(
     operation_type="markdown_operation",
     tokens_input=1500,               # README/CHANGELOG updates
     tokens_output=800,
@@ -117,7 +117,7 @@ cost = reporter.track_operation(
 print(f"Markdown operation cost: ${cost['cost']:.4f} {cost['currency']}")
 
 # Example 4: Track file read (3.6x multiplier for PDF via URL)
-cost = reporter.track_operation(
+operation = cost.track_operation(
     operation_type="file_read",
     tokens_input=450,
     tokens_output=120,
@@ -128,18 +128,18 @@ cost = reporter.track_operation(
     billing_plan="max",
     pricing_tier="off_peak"
 )
-print(f"File read cost: ${cost['cost']:.4f} {cost['currency']}")
+print(f"File read cost: ${operation['cost']:.4f} {operation['currency']}")
 
 # Get today's breakdown
-breakdown = reporter.analyze_daily()
+breakdown = cost.analyze_daily()
 print(f"Today: ${breakdown['total_cost']:.2f}")
 
 # Find cost by plan
-plans = reporter.compare_billing_plans()
+plans = cost.compare_billing_plans()
 print(f"Recommendation: Switch to {plans['recommended_plan']} (save ${plans['savings']:.2f}/month)")
 
 # Model comparison
-models = reporter.compare_models(tokens_input=1000, tokens_output=500)
+models = cost.compare_models(tokens_input=1000, tokens_output=500)
 for model in models['comparisons']:
     print(f"{model['model']}: ${model['cost_usd']:.4f}")
 ```
@@ -322,7 +322,7 @@ from pycostreporter import PyCostReporter
 cost_tracker = PyCostReporter(db_path="~/.pycostreporter/costs.db")
 
 # Track any operation
-cost = cost_tracker.track_operation(
+cost = tracker.track_operation(
     operation_type="file_read",
     tokens_input=450,
     tokens_output=120,
@@ -331,11 +331,11 @@ cost = cost_tracker.track_operation(
 )
 
 # Get daily analysis
-breakdown = cost_tracker.analyze_daily()
+breakdown = tracker.analyze_daily()
 print(f"Today's cost: ${breakdown['total_cost']:.2f}")
 
 # Get optimization recommendations
-recommendations = cost_tracker.get_recommendations()
+recommendations = tracker.get_recommendations()
 for rec in recommendations:
     print(f"{rec['action']}: Save {rec['savings']}")
 ```
@@ -384,7 +384,7 @@ Every existing cost tracker shows: "You spent $47 today."
 
 Nobody shows: "You spent $32 on PDFs via URL (which costs 3.6x disk) at peak hours (30% premium) on the API tier (8x Max pricing) because you didn't know about the multipliers."
 
-**PyCostReporter solves the unsolved problem:** Making the hidden 36x-1000x multipliers visible so users can optimize.
+**ClaudeAudit solves the unsolved problem:** Making the hidden 36x-1000x multipliers visible through comprehensive cost auditing.
 
 The market is worth $1B+. Everyone using Claude (50M+ users) is leaving 50-80% in savings on the table.
 
@@ -392,8 +392,8 @@ The market is worth $1B+. Everyone using Claude (50M+ users) is leaving 50-80% i
 
 ## Questions?
 
-- Bug Reports: [GitHub Issues](https://github.com/Mullassery/PyCostReporter/issues)
-- Discussions: [GitHub Discussions](https://github.com/Mullassery/PyCostReporter/discussions)
-- Package: [PyPI: pycost-reporter](https://pypi.org/project/pycost-reporter/)
+- Bug Reports: [GitHub Issues](https://github.com/Mullassery/ClaudeAudit/issues)
+- Discussions: [GitHub Discussions](https://github.com/Mullassery/ClaudeAudit/discussions)
+- Package: [PyPI: claudeaudit](https://pypi.org/project/claudeaudit/)
 
 **Stop wasting money. Start tracking what matters.** 💚

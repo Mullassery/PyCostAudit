@@ -3,7 +3,7 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin.build"
 
 [project]
-name = "pycost-reporter"
+name = "claudeaudit"
 version = "0.4.0"
 description = "Real-time LLM cost tracking and optimization — Rust core with Python API"
 readme = "README.md"
@@ -34,12 +34,12 @@ postgres = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Mullassery/PyCostReporter"
-Repository = "https://github.com/Mullassery/PyCostReporter"
-"Bug Tracker" = "https://github.com/Mullassery/PyCostReporter/issues"
+Homepage = "https://github.com/Mullassery/ClaudeAudit"
+Repository = "https://github.com/Mullassery/ClaudeAudit"
+"Bug Tracker" = "https://github.com/Mullassery/ClaudeAudit/issues"
 
 [tool.maturin]
-module-name = "pycost_reporter._core"
+module-name = "claudeaudit._core"
 manifest-path = "python/Cargo.toml"
 python-source = "python/src"
 

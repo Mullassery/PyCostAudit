@@ -7,7 +7,7 @@ version = "0.4.0"
 edition = "2021"
 authors = ["Georgi Mammen Mullassery <mullassery@gmail.com>"]
 license = "MIT"
-repository = "https://github.com/Mullassery/PyCostReporter"
+repository = "https://github.com/Mullassery/ClaudeAudit"
 
 [workspace.dependencies]
 pyo3 = { version = "0.22", features = ["extension-module"] }
