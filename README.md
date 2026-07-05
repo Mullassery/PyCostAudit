@@ -40,20 +40,76 @@ You need: **"$32 on PDFs (could save $23 by moving to disk) + $12 on GitHub ops 
 
 ## 30-Second Start
 
+### Option 1: Skill (CLI Commands)
 ```bash
 # Install
-pip install pycostaudit  # or: uv pip install pycostaudit
+bash install-skill.sh
+source ~/.zshrc
 
-# Track
-from pycost_audit import PyCostAudit
-auditor = PyCostAudit()
+# View costs
+cost-report
 
-# View
-breakdown = auditor.analyze_daily()
-print(f"Today: ${breakdown['total_cost_usd']:.2f}")
+# Quick track
+cost-track "operation" 2000 500
 ```
 
-⚠️ **Scope:** Tracks Claude Code only (not Desktop, Web, or API direct calls)
+### Option 2: CLI Monitor (Real-Time Dashboard)
+```bash
+python3 pycostaudit_monitor.py
+# Auto-refreshes every 2 seconds
+```
+
+### Option 3: Browser Extension (Chrome)
+```bash
+# Open Chrome → Extensions → Load unpacked → browser-extension/
+# Click extension icon to see real-time costs
+```
+
+⚠️ **Scope:** Tracks Claude Code operations (multi-provider: OpenAI, Bedrock, Gemini)
+
+---
+
+## Three Ways to Track Your Costs
+
+### 1. **Claude Code Skill** ⚡ Quick Checks
+```bash
+cost-report              # Daily breakdown
+cost-forecast            # Weekly forecast
+cost-track <op> <in> <out> # Manual tracking
+```
+Perfect for: On-demand cost reports, daily reviews, script integration
+
+### 2. **CLI Monitor** 📊 Real-Time Dashboard
+```bash
+cost-monitor             # Auto-refresh every 2 seconds
+cost-monitor --refresh 1 # Custom refresh rate
+```
+Perfect for: Session monitoring, live cost tracking, trend analysis
+
+### 3. **Browser Extension** 🌐 Chrome Popup
+```
+Chrome → Extensions → Load unpacked → browser-extension/
+```
+Perfect for: Always-on monitoring, browser-based workflows, team dashboards
+
+**[See detailed comparison →](INTEGRATION_COMPARISON.md)**
+
+---
+
+## Recent Updates (v0.5.0)
+
+### Phase 2: Multi-Provider & Dashboard ✅
+- Multi-provider cost tracking (OpenAI, AWS Bedrock, Google Gemini)
+- Real-time web dashboard (FastAPI + Next.js)
+- Alert system (Slack + Twilio SMS)
+- OpenTelemetry integration (Jaeger + Prometheus)
+
+### Phase 3: Multi-Surface Integration ✅ NEW
+- Claude Code Skill with auto-tracking hooks
+- CLI Monitor with real-time updates
+- Browser Extension for Chrome
+- Dual-monitoring setup with complete automation
+- 4 comprehensive documentation guides
 
 ---
 

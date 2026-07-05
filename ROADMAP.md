@@ -1,4 +1,13 @@
-# PyCostReporter Roadmap
+# PyCostAudit Roadmap
+
+## Current Status: ✅ Phase 3 Complete (v0.5.0 Multi-Surface Integration)
+
+PyCostAudit now provides **three complementary interfaces** for real-time Claude Code cost tracking:
+- ✅ **Claude Code Skill** (CLI commands)
+- ✅ **CLI Monitor** (Real-time dashboard)
+- ✅ **Browser Extension** (Chrome popup)
+
+---
 
 ## The Problem We're Solving
 
@@ -10,11 +19,11 @@ Reality:  "Idk, file reads? AI calls? Git operations?"
 Result:   "Can't optimize what you can't measure"
 ```
 
-**PyCostReporter changes this:**
+**PyCostAudit solves this:**
 ```
-PyCostReporter: "File reads = $32.40 (60% of your spend)"
-Developer:    "Oh! I can optimize that"
-Result:       "Saves $420/month"
+PyCostAudit: "File reads = $32.40 (60% of your spend)"
+Developer:   "Oh! I can optimize that"
+Result:      "Saves $420/month"
 ```
 
 ---
