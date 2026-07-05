@@ -6,17 +6,38 @@
 [![GitHub](https://img.shields.io/badge/GitHub-PyCostAudit-black.svg)](https://github.com/Mullassery/PyCostAudit)
 [![Package Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)](#)
 
-**Comprehensive LLM cost auditing with hidden multiplier detection — the only tool that tracks what actually costs money.**
+**Cost tracking for Claude Code — Tracks spending across 15+ dimensions to help you optimize LLM costs within Claude Code sessions.**
+
+⚠️ **SCOPE:** Tracks Claude Code usage only. Does NOT track Claude Desktop, Claude Web, or Claude API direct calls.
 
 PyCostAudit reveals what no other tool measures: file format multipliers (36x variance), GitHub operations (4-12x variance), peak/off-peak hour pricing (30% swings), regional pricing (10-30% variance), billing plan differences (200%+ variance), and operation type costs (55x variance).
 
-> Stop guessing why Claude costs so much. **See exactly where your money goes. Then cut costs by 50-80%.**
+> Stop guessing why your Claude Code subscription costs so much. **See exactly where your money goes. Then cut costs by 50-80%.**
+
+---
+
+## Quick Start: Claude Code Integration
+
+PyCostAudit integrates directly with Claude Code. Track all your operations automatically:
+
+```bash
+# Install
+pip install pycostaudit  # or: uv pip install pycostaudit
+
+# Start tracking in your Claude Code projects
+from pycost_audit import PyCostAudit
+
+auditor = PyCostAudit()
+# That's it! All Claude Code operations are now tracked.
+```
+
+> Note: PyCostAudit tracks costs within **Claude Code only**. Claude Desktop and Claude Web (subscription-based) use separate billing not tracked here.
 
 ---
 
 ## The Problem Nobody Addresses
 
-You're spending more on Claude than you realize. Not because Claude is expensive—but because you don't see the hidden multipliers:
+**Inside Claude Code**, you're spending more than you realize. Not because Claude is expensive—but because you don't see the hidden multipliers:
 
 ```
 ❌ PDF from URL costs 3.6x more than pasted CSV
@@ -77,8 +98,10 @@ Result: $1,200 → $375/month. You just kept $10k/year.
 ## Install & 2-Minute Setup
 
 ```bash
-# Install
+# Install (choose one)
 pip install pycostaudit
+# or with uv (faster)
+uv pip install pycostaudit
 
 # Start auditing
 from pycost_audit import PyCostAudit
@@ -310,57 +333,81 @@ recs = reporter.get_recommendations()
 
 ## Claude Code Integration
 
-### Quick Start (Claude Code Skill)
+### For Users: Track Your Work
 
-PyCostAudit integrates natively with Claude Code. Enable cost tracking in your Claude Code sessions:
+PyCostAudit integrates directly into Claude Code. Every operation within Claude Code is tracked automatically:
 
 ```python
-# In your Claude Code project
+# In any Claude Code project
 from pycost_audit import PyCostAudit
 
-# Initialize once
-auditor = PyCostAudit(db_path="~/.pycostaudit/costs.db")
+# Initialize once (default location: ~/.pycostaudit/costs.db)
+auditor = PyCostAudit()
 
-# Track any operation
+# Get today's breakdown
+breakdown = auditor.analyze_daily()
+print(f"Today's Claude Code cost: ${breakdown['total_cost_usd']:.2f}")
+
+# Get optimization tips
+recs = auditor.get_recommendations()
+for rec in recs['recommendations'][:3]:
+    print(f"💡 {rec['action']}: Save ${rec['expected_savings_usd']}/day")
+```
+
+### For Agents: Integrating Cost Tracking
+
+Agents and autonomous workflows can track costs by wrapping Claude Code operations:
+
+```python
+from pycost_audit import PyCostAudit
+
+auditor = PyCostAudit()
+
+# Track individual operations
 cost = auditor.track_operation(
-    operation_type="file_read",
+    operation_type="file_read",  # or: api_call, browser_op, mcp_invocation, etc
     tokens_input=450,
     tokens_output=120,
     model="claude-3-5-haiku",
-    user="your_username"
+    mcp_name="web_search",  # if using a skill
+    session_id="my_agent_task"
 )
 
-# Get daily analysis
-breakdown = auditor.analyze_daily()
-print(f"Today's cost: ${breakdown['total_cost']:.2f}")
-
-# Get optimization recommendations
-recommendations = auditor.get_recommendations()
-for rec in recommendations:
-    print(f"{rec['action']}: Save {rec['savings']}")
+# Monitor cost per session
+session_analysis = auditor.analyze_session("my_agent_task")
+if session_analysis['total_cost_usd'] > 0.50:
+    print(f"⚠️ Session cost high: ${session_analysis['total_cost_usd']:.2f}")
 ```
 
-### Automatic Claude Code Hook Integration
-
-Add this to your `.claude/claude-hooks.json` to auto-track costs:
-
-```json
-{
-  "operation:file_read": "track_cost('file_read', tokens_in, tokens_out)",
-  "operation:api_call": "track_cost('api_call', tokens_in, tokens_out)",
-  "session:end": "report_daily_costs()"
-}
-```
-
-### Environment Setup
+### Installation & Environment
 
 ```bash
-# Install in your Claude Code project
-pip install pycostaudit
+# Install (choose one)
+pip install pycostaudit      # with pip
+uv pip install pycostaudit   # with uv (faster)
 
-# Set up database path
+# Optional: Custom database path
 export PYCOSTAUDIT_DB=~/.pycostaudit/costs.db
 ```
+
+---
+
+**Note:** PyCostAudit tracks **Claude Code only**. Claude Desktop and Claude Web use separate billing systems not tracked here.
+
+---
+
+## ⚠️ Important: Cost Estimates & Disclaimers
+
+**These are nearest estimates, not actual billing:**
+- Costs shown are calculated from token counts and published pricing
+- Actual Claude billing may differ due to:
+  - Cache hits (75% discount on cached tokens)
+  - Batch processing discounts (50% discount)
+  - Enterprise contracts (custom pricing)
+  - Pricing changes (pricing updates daily)
+  - Hidden overhead in MCP calls (can be 10-100x)
+- **Always verify against your actual Claude invoice**
+- Use "pricing_source" field: "api" (most accurate) vs "fallback" (⚠️ outdated)
 
 ---
 
