@@ -40,7 +40,7 @@ Repository = "https://github.com/Mullassery/CostReporter"
 
 [tool.maturin]
 module-name = "pycost_reporter._core"
-features = ["pyo3/extension-module"]
+manifest-path = "python/Cargo.toml"
 python-source = "python/src"
 
 [tool.black]

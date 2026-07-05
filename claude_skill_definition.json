@@ -1,0 +1,147 @@
+{
+  "name": "cost-reporter",
+  "version": "0.1.0",
+  "displayName": "CostReporter: Real-time LLM Cost Tracking",
+  "description": "Track and optimize LLM costs across all operations, identifying hidden multipliers nobody else measures",
+  "author": "Georgi Mammen Mullassery",
+  "license": "MIT",
+  "repository": "https://github.com/Mullassery/CostReporter",
+  "capabilities": {
+    "tracking": {
+      "fileFormatCosts": "Tracks cost multipliers for file sources (CSV vs PDF URL = 36x)",
+      "operationTypeBreakdown": "Isolates costs by operation type (browser vs file = 55x)",
+      "instructionContext": "Measures markdown file overhead (.claude/claude.md, agent.md)",
+      "dataWarehouseQueries": "Profiles database reads and S3 operations (100x-1000x+)",
+      "saasAdvancedMcpEfficiency": "Detects SaaS MCP internal overhead (10x-100x)",
+      "sessionTracking": "Groups operations by context for root cause analysis"
+    }
+  },
+  "commands": {
+    "track_operation": {
+      "description": "Track a single LLM operation cost",
+      "parameters": {
+        "operation_type": {
+          "type": "string",
+          "enum": [
+            "api_call",
+            "file_read",
+            "browser_op",
+            "mcp_invocation",
+            "git_op",
+            "database_query",
+            "instruction_context"
+          ],
+          "description": "Type of operation that consumed tokens"
+        },
+        "tokens_input": {
+          "type": "number",
+          "description": "Input tokens consumed"
+        },
+        "tokens_output": {
+          "type": "number",
+          "description": "Output tokens generated"
+        },
+        "model": {
+          "type": "string",
+          "description": "Model used (e.g., claude-3-5-haiku, claude-3-5-sonnet)"
+        },
+        "file_source": {
+          "type": "string",
+          "enum": [
+            "csv_pasted",
+            "csv_local",
+            "pdf_local",
+            "pdf_url",
+            "image_url",
+            "stream",
+            "mcp_stream"
+          ],
+          "description": "Source of file data (multiplier applied)"
+        },
+        "mcp_name": {
+          "type": "string",
+          "description": "MCP/Skill name (e.g., web_search, code_execution)"
+        }
+      }
+    },
+    "start_session": {
+      "description": "Start a new cost tracking session",
+      "parameters": {
+        "name": {
+          "type": "string",
+          "description": "Session name (e.g., debug-auth, feature/search)"
+        }
+      }
+    },
+    "end_session": {
+      "description": "End a session and get cost summary"
+    },
+    "analyze_daily": {
+      "description": "Get today's cost breakdown by operation type, file format, and MCP"
+    },
+    "analyze_session": {
+      "description": "Analyze a session's costs with root cause diagnosis and recommendations"
+    },
+    "analyze_mcp_costs": {
+      "description": "Rank MCPs by cost - see which skills drain budget most"
+    },
+    "get_recommendations": {
+      "description": "Get cost optimization recommendations ranked by impact"
+    },
+    "detect_anomalies": {
+      "description": "Detect unusual spending patterns or spikes"
+    }
+  },
+  "examples": {
+    "trackPdfUrlRead": {
+      "description": "Track reading a PDF via URL (3.6x multiplier)",
+      "code": "reporter.track_operation(\n  operation_type='file_read',\n  tokens_input=450,\n  tokens_output=120,\n  model='claude-3-5-haiku',\n  file_source='pdf_url'  # 3.6x more expensive!\n)"
+    },
+    "trackBrowserScrape": {
+      "description": "Track browser scraping (55x multiplier)",
+      "code": "reporter.track_operation(\n  operation_type='browser_op',\n  tokens_input=1000,\n  tokens_output=500,\n  model='claude-3-5-haiku'\n)"
+    },
+    "trackDatabaseQuery": {
+      "description": "Track data warehouse query (100x-1000x+ multiplier)",
+      "code": "reporter.track_operation(\n  operation_type='database_query',\n  tokens_input=100000,  # Snowflake result set\n  tokens_output=50000,\n  model='claude-3-5-sonnet',\n  session_id='data-exploration'\n)"
+    },
+    "analyzeSession": {
+      "description": "Analyze a session to find where money is going",
+      "code": "analysis = reporter.analyze_session('debug-auth')\nprint(f\"Session cost: ${analysis['total_cost_usd']}\")\nprint(f\"Biggest waste: {analysis['biggest_waste']['type']}\")\nfor rec in analysis['recommendations']:\n  print(f\"Save ${rec['cost_usd']}: {rec['suggestion']}\")"
+    }
+  },
+  "costMultipliers": {
+    "operationType": {
+      "api_call": { "multiplier": 1.0, "description": "Baseline" },
+      "file_read": {
+        "multiplier": "1.0-4.2x",
+        "description": "Depends on file_source (see below)"
+      },
+      "browser_op": { "multiplier": 55.0, "description": "55x more than file read!" },
+      "mcp_invocation": { "multiplier": 2.4, "description": "Protocol overhead" },
+      "git_op": { "multiplier": 0.8, "description": "Cached/optimized" },
+      "database_query": {
+        "multiplier": "100x-1000x+",
+        "description": "Depends on result set size"
+      }
+    },
+    "fileSource": {
+      "csv_pasted": { "multiplier": 1.0, "description": "Baseline" },
+      "csv_local": { "multiplier": 1.0, "description": "Local disk read" },
+      "pdf_local": { "multiplier": 1.2, "description": "Parsing overhead" },
+      "pdf_url": { "multiplier": 3.6, "description": "Download + parse" },
+      "image_url": { "multiplier": 4.2, "description": "High resolution" },
+      "stream": { "multiplier": 2.8, "description": "Protocol overhead" },
+      "mcp_stream": { "multiplier": 2.4, "description": "MCP protocol" }
+    }
+  },
+  "installation": {
+    "pip": "pip install pycost-reporter",
+    "source": "git clone https://github.com/Mullassery/CostReporter.git && cd CostReporter && make install"
+  },
+  "documentation": {
+    "quickStart": "https://github.com/Mullassery/CostReporter#quick-start",
+    "features": "https://github.com/Mullassery/CostReporter#features",
+    "api": "https://github.com/Mullassery/CostReporter#api-reference"
+  }
+}
