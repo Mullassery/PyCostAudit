@@ -111,11 +111,13 @@ impl PyCostReporter {
 
         let result = serde_json::json!({
             "operation_id": cost_data.operation_id,
-            "cost_usd": cost_data.cost_usd,
+            "cost": cost_data.cost,
+            "currency": cost_data.currency.code(),
             "tokens_actual": cost_data.tokens_actual,
             "multiplier": cost_data.multiplier,
-            "input_cost_usd": cost_data.input_cost_usd,
-            "output_cost_usd": cost_data.output_cost_usd,
+            "input_cost": cost_data.input_cost,
+            "output_cost": cost_data.output_cost,
+            "pricing_source": cost_data.pricing_source,
         });
         Ok(serde_json::to_string(&result).map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?)
     }
