@@ -199,6 +199,18 @@ pub enum OperationType {
     /// Markdown instruction context read (.claude/claude.md, agent.md, workflow.md, etc)
     /// CRITICAL: Can be 10x-50x more expensive than the actual operation
     InstructionContext,
+    /// GitHub read operation (fetch PR/issue/repo, 2x-8x multiplier)
+    /// CRITICAL: Reading large PRs or complex repos = massive token usage
+    GitHubRead,
+    /// GitHub write operation (create issue/comment/PR, 3x-15x multiplier)
+    /// CRITICAL: Claude analyzing and writing code into GitHub = very expensive
+    GitHubWrite,
+    /// GitHub commit push (4x-20x multiplier, includes diff analysis + tree walk)
+    /// CRITICAL: Largest cost dimension in Claude Code workflows
+    GitHubCommit,
+    /// Markdown/Documentation read/write (2x-6x multiplier)
+    /// CRITICAL: Frequent README, CHANGELOG, docs updates are expensive
+    MarkdownOperation,
 }
 
 /// File source determines cost multiplier (36x variance: CSV vs PDF URL)

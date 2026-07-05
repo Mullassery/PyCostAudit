@@ -123,6 +123,10 @@ impl CostTracker {
             OperationType::GitOp => 0.8, // Caching reduces cost
             OperationType::DatabaseQuery => 2.0, // Small SQL query (use DataSource for big queries!)
             OperationType::InstructionContext => 1.0, // Direct cost (no multiplier, already included)
+            OperationType::GitHubRead => 4.0, // 4x baseline (reading API responses, parsing issues/PRs)
+            OperationType::GitHubWrite => 8.0, // 8x baseline (creating issues, comments, complex writes)
+            OperationType::GitHubCommit => 12.0, // 12x baseline (diff analysis, tree walk, commit metadata)
+            OperationType::MarkdownOperation => 3.0, // 3x baseline (frequent README/docs updates accumulate)
         };
 
         // Apply pricing tier multiplier (peak/off-peak)

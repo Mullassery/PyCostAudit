@@ -43,6 +43,8 @@ You're spending more on Claude than you realize. Not because Claude is expensive
 | **Cloud Region** | us-east-1 vs eu-west | 1.15x | Regional premiums add up |
 | **Billing Plan** | API vs Pro vs Max vs Enterprise | 8x | Same usage, wildly different costs |
 | **MCP Overhead** | Claimed vs actual tokens | 10-100x | Stripe MCP = 23x overhead |
+| **GitHub Operations** | Read vs Write vs Commit | 4-12x | Claude commits cost 12x more |
+| **Markdown/Docs** | README, CHANGELOG, docs | 3x | Frequent updates = major costs |
 | **Data Warehouse** | Snowflake queries | 100-1000x+ | One query = $7.50 |
 | **Timezone** | User's local time | Context-aware | Fair team billing |
 | **Currency** | USD, EUR, GBP, etc. | None | No FX conversion risk |
@@ -84,7 +86,37 @@ import os
 
 reporter = PyCostReporter(db_path="~/.pycostreporter/costs.db")
 
-# Example: Track a file read operation
+# Example 1: Track GitHub commit (12x cost multiplier)
+cost = reporter.track_operation(
+    operation_type="github_commit",
+    tokens_input=8200,               # Analyzing diffs, tree walk
+    tokens_output=450,
+    model="claude-3-5-sonnet",
+    user="alice"
+)
+print(f"GitHub commit cost: ${cost['cost']:.4f} {cost['currency']}")
+
+# Example 2: Track GitHub read (4x cost multiplier)
+cost = reporter.track_operation(
+    operation_type="github_read",
+    tokens_input=2100,               # Reading PR/issue
+    tokens_output=200,
+    model="claude-3-5-haiku",
+    user="bob"
+)
+print(f"GitHub read cost: ${cost['cost']:.4f} {cost['currency']}")
+
+# Example 3: Track markdown updates (3x cost multiplier)
+cost = reporter.track_operation(
+    operation_type="markdown_operation",
+    tokens_input=1500,               # README/CHANGELOG updates
+    tokens_output=800,
+    model="claude-3-5-sonnet",
+    user="alice"
+)
+print(f"Markdown operation cost: ${cost['cost']:.4f} {cost['currency']}")
+
+# Example 4: Track file read (3.6x multiplier for PDF via URL)
 cost = reporter.track_operation(
     operation_type="file_read",
     tokens_input=450,
@@ -92,14 +124,11 @@ cost = reporter.track_operation(
     model="claude-3-5-haiku",
     file_source="pdf_url",           # 3.6x multiplier
     user="alice",
-    user_timezone="America/New_York", # Local budget reset
-    cloud_region="eu-west-1",        # +15% premium
-    billing_plan="max",              # $200/month tier
-    pricing_tier="off_peak"          # 2 AM = 0.7x cost
+    user_timezone="America/New_York",
+    billing_plan="max",
+    pricing_tier="off_peak"
 )
-
-print(f"Cost: ${cost['cost']:.4f} {cost['currency']}")
-# Output: Cost: $0.0142 USD
+print(f"File read cost: ${cost['cost']:.4f} {cost['currency']}")
 
 # Get today's breakdown
 breakdown = reporter.analyze_daily()
