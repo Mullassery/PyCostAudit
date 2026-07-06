@@ -3,7 +3,7 @@ PyCostAudit - Real-time LLM cost tracking and optimization
 Tracks Claude Code costs across 15+ hidden dimensions and provides actionable recommendations.
 """
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 __author__ = "Georgi Mammen Mullassery"
 
 from . import (
