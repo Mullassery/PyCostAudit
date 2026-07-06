@@ -17,6 +17,8 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 chrono = { workspace = true }
 chrono-tz = { workspace = true }
+reqwest = { version = "0.11", features = ["json"] }
+base64 = "0.21"
 
 [dev-dependencies]
 tokio-test = "0.4"

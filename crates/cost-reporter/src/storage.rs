@@ -85,7 +85,46 @@ impl StorageBackend {
             .execute(pool)
             .await?;
 
+        // Audit logs table for compliance
+        sqlx::query(
+            r#"
+            CREATE TABLE IF NOT EXISTS audit_logs (
+                id TEXT PRIMARY KEY,
+                timestamp TEXT NOT NULL,
+                event_type TEXT NOT NULL,
+                user_id TEXT NOT NULL,
+                org_id TEXT NOT NULL,
+                resource_type TEXT NOT NULL,
+                resource_id TEXT NOT NULL,
+                action TEXT NOT NULL,
+                description TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                status TEXT NOT NULL,
+                error_message TEXT
+            )
+            "#,
+        )
+        .execute(pool)
+        .await?;
+
+        sqlx::query("CREATE INDEX IF NOT EXISTS idx_audit_org_id ON audit_logs(org_id)")
+            .execute(pool)
+            .await?;
+
+        sqlx::query("CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp)")
+            .execute(pool)
+            .await?;
+
+        sqlx::query("CREATE INDEX IF NOT EXISTS idx_audit_event_type ON audit_logs(event_type)")
+            .execute(pool)
+            .await?;
+
         Ok(())
+    }
+
+    /// Get reference to SQLite pool for direct queries
+    pub fn get_pool(&self) -> Option<&SqlitePool> {
+        self.pool.as_ref()
     }
 
     /// Save operation to storage

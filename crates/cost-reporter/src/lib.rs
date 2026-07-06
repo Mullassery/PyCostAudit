@@ -18,6 +18,7 @@ pub mod storage;
 pub mod analyzer;
 pub mod pricing_service;
 pub mod provider_integrations;
+pub mod audit;
 
 pub use types::{Operation, OperationType, FileSource, Session, CostData, BillingPlan, Currency, PricingTier};
 pub use cost_tracker::CostTracker;
@@ -26,6 +27,7 @@ pub use storage::StorageBackend;
 pub use analyzer::CostAnalyzer;
 pub use pricing_service::PricingService;
 pub use provider_integrations::{ProviderIntegration, ActualUsageData, IntegrationStatus};
+pub use audit::{AuditLogger, AuditEvent, AuditEventType};
 
 #[derive(Debug, Clone)]
 pub struct CostReporter {
