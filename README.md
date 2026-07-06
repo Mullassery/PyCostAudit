@@ -143,52 +143,48 @@ Generate reports in your favorite format:
 
 ---
 
-## Recent Updates (v0.7.0) — 10 Tasks Complete! ✅
+## v0.7.0 Features
 
-### Phase 4: Advanced Filtering & Custom Reports ✅ NEW
-- Advanced filtering system with 12 operators (EQ, NE, GT, BETWEEN, REGEX, etc.)
-- Custom report builder with 6 export formats (JSON, CSV, HTML, Markdown, PDF, Excel)
-- Pre-built templates for common reports (cost breakdown, trend analysis, regional comparison)
-- Report scheduling (daily, weekly, monthly, quarterly delivery)
-- Aggregation engine with 9 functions (SUM, AVG, MIN, MAX, COUNT, STDDEV, percentiles)
-- Time-series bucketing (minute through year)
+### 📊 Advanced Custom Reports
+- Build custom reports with 12 filter operators (EQ, NE, GT, BETWEEN, REGEX, etc.)
+- Export to 6 formats (JSON, CSV, HTML, Markdown, PDF, Excel)
+- Pre-built templates (cost breakdown, trends, regional comparison)
+- Automatic scheduling (daily, weekly, monthly, quarterly)
+- Aggregation functions (SUM, AVG, MIN, MAX, COUNT, STDDEV, percentiles)
+- Time-series analysis (minute through year granularity)
 
-### Phase 5: Multi-Org & Departments ✅ NEW
-- Hierarchical organization structure (unlimited nesting)
-- Role-based access control (admin, manager, department_lead, member, viewer)
-- Department-level budget management and overage detection
-- Cost allocation with flexible distribution rules
-- User-specific cost visibility based on permissions
-- Department comparison and forecasting
-- 24 compliance-ready department tracking tests
+### 👥 Team & Department Management
+- Multi-level department structure (unlimited nesting)
+- Fair cost allocation across teams
+- Role-based access (admin, manager, lead, member, viewer)
+- Per-department budget limits with alerts
+- Department-level cost comparison
+- Auto-assigned usage tracking per team
 
-### Phase 6: SOC 2 Compliance & Audit ✅ NEW
-- Comprehensive audit logging (20 event types)
+### 🔒 Enterprise Compliance & Security
+- Complete audit trail (20 event types tracked)
 - Data classification (public, internal, confidential, restricted)
-- Access logging with purpose documentation
-- Compliance frameworks (SOC 2, HIPAA, GDPR, PCI DSS, ISO 27001)
+- SOC 2, HIPAA, GDPR, PCI DSS, ISO 27001 compliance ready
 - Data retention policies with automatic archival
-- Compliance checkpoints and remediation tracking
-- Detailed compliance reports with evidence collection
+- Sensitive data access logging with purpose documentation
+- Compliance reports for auditors
 
-### Phase 7: OpenTelemetry Observability Export ✅ FINAL
-- Multi-backend support (Prometheus, Jaeger, Datadog, New Relic, OTLP)
-- Metrics collection (cost, tokens, operations, anomalies, budget)
-- Distributed tracing with span collection
-- Real-time metrics export to observability stacks
-- Integration with existing monitoring dashboards
-- Custom alerting on cost anomalies
-- 27 comprehensive observability tests
+### 📈 Real-Time Monitoring & Dashboards
+- Connect to Prometheus for live metrics
+- Integration with Datadog, Jaeger, New Relic, OTLP
+- Real-time cost anomaly detection
+- Custom dashboards in your monitoring tools
+- Distributed tracing of cost events
+- Automated cost-based alerting
 
-### Phase 2-3: Core Platform ✅
-- Ultra-detailed token classification (50+ dimensions)
-- ML-based anomaly detection (4 algorithms)
-- Advanced cost forecasting (30/60/90-day with confidence intervals)
-- Intelligent recommendations (8 types with ROI ranking)
-- Multi-provider cost tracking (Anthropic, AWS Bedrock, GCP, Azure)
-- Real-time web dashboard
-- Alert system (Slack, Email, SMS, Twilio)
-- Claude Code Skill, CLI Monitor, Browser Extension
+### 💰 Core Cost Tracking & Optimization
+- 50+ dimensional cost classification
+- ML-based anomaly detection (finds unusual patterns automatically)
+- AI-powered cost forecasting (30/60/90-day projections)
+- Intelligent optimization recommendations (8 types ranked by ROI)
+- Multi-provider comparison (Anthropic, AWS Bedrock, GCP, Azure)
+- Real-time alerts (Slack, Email, SMS)
+- Daily/weekly automated reports
 
 ---
 
