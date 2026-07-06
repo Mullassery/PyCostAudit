@@ -72,7 +72,18 @@ python3 pycostaudit_monitor.py
 
 ## Live Demo
 
-![PyCostAudit Demo](./docs/images/demo.jpeg)
+**Real-Time Cost Dashboard (Default Interface)**
+
+The dashboard below comes standard with PyCostAudit. It shows real-time cost tracking across all operation types, forecasting, and optimization recommendations:
+
+![PyCostAudit Dashboard - Default Real-Time Monitoring Interface](./docs/images/demo.jpeg)
+
+**What you see:**
+- **Real-time costs** across browser operations, MCP invocations, GitHub integrations, and file operations
+- **Smart forecasting** with daily average, weekly, monthly, and projected costs
+- **Top 3 recommendations** with specific savings amounts
+- **Status alerts** showing budget health and anomaly detection
+- **Auto-refresh** every 2 seconds for live monitoring
 
 ---
 
