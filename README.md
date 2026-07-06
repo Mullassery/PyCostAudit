@@ -43,9 +43,18 @@ Annual savings: $10,200 (100% returned to your budget)
 
 ---
 
-## 🎯 Claude Code Integration (v0.7.0)
+## 🎯 Claude Code Integration (v0.8.0+)
 
 **PyCostAudit is built INTO Claude Code's workflow, not as a separate tool.**
+
+### What's New in v0.8.0
+```
+✨ Roadmap-driven development
+✨ Real Anthropic API integration (optional)
+✨ Multi-cloud integration coming (AWS, Azure, GCP)
+✨ 34 analyses framework
+✨ Community-focused OSS
+```
 
 ### How It Works
 
@@ -86,6 +95,28 @@ Every interaction shows relevant options:
 - **Works in Claude Code terminal** (seamless integration)
 
 See [CLAUDE_CODE_INTEGRATION.md](./CLAUDE_CODE_INTEGRATION.md) for complete integration guide.
+
+### 🗺️ Roadmap (v0.8.0 → v1.0.0)
+
+**v0.8.0 (Now)** - Foundation  
+- ✅ Real Anthropic API support (optional)
+- ✅ 10 analyses available
+- ✅ Budget + alert system
+- ✅ Weekly report automation
+
+**v0.9.0 (Phase 2)** - Multi-Cloud  
+- 🚀 AWS Bedrock integration
+- 🚀 Azure Foundry integration
+- 🚀 GCP Vertex AI integration
+- 🚀 Unified cost dashboard (10x visibility)
+
+**v1.0.0 (Phase 3+)** - Complete  
+- 34 all analyses
+- Enterprise features
+- Team tracking
+- Compliance audit
+
+[See full roadmap →](./ROADMAP_2026.md)
 
 ---
 
