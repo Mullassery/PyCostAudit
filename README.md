@@ -69,6 +69,12 @@ python3 pycostaudit_monitor.py
 
 ---
 
+## Live Demo
+
+![PyCostAudit Demo](./docs/images/demo.jpeg)
+
+---
+
 ## Three Ways to Track Your Costs
 
 ### 1. **Claude Code Skill** ⚡ Quick Checks
