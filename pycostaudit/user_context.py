@@ -46,20 +46,32 @@ class UserContext:
         """Analyze a single history entry"""
         self.sessions_count += 1
 
-        # Extract tokens
-        if "usage" in entry:
-            usage = entry["usage"]
-            self.total_tokens += usage.get("input_tokens", 0) + usage.get("output_tokens", 0)
+        # Extract project from path
+        project_path = entry.get("project", "")
+        self._extract_project_from_path(project_path)
 
-        # Extract tool usage
-        if "tools" in entry:
-            for tool in entry.get("tools", []):
-                self.tools_used[tool] += 1
+        # Extract context from display text (the user's query/task)
+        display = entry.get("display", "").lower()
+        self._extract_project_from_message({"content": display})
 
-        # Extract project context from messages
-        if "messages" in entry:
-            for msg in entry.get("messages", []):
-                self._extract_project_from_message(msg)
+    def _extract_project_from_path(self, project_path: str):
+        """Extract project names from directory path"""
+        path_lower = project_path.lower()
+
+        project_dirs = {
+            "statguard": "statguard",
+            "clusteraudiencekit": "clusteraudiencekit",
+            "prismnote": "prismnote",
+            "pyroboframes": "pyroboframes",
+            "pycostaudit": "pycostaudit",
+            "streamxl": "streamxl",
+        }
+
+        for path_part, project_name in project_dirs.items():
+            if path_part in path_lower:
+                self.projects.add(project_name)
+                self.active_projects[project_name] += 1
+                return
 
     def _extract_project_from_message(self, message: Dict):
         """Extract project hints from message content"""
@@ -71,7 +83,8 @@ class UserContext:
             "clusteraudiencekit": ["clusteraudiencekit", "audience", "segmentation"],
             "prismnote": ["prismnote", "notebook", "sql execution"],
             "pyroboframes": ["pyroboframes", "robot", "mlx", "video"],
-            "pycostaudit": ["pycostaudit", "cost tracking", "claude code costs"],
+            "pycostaudit": ["pycostaudit", "cost tracking", "audit"],
+            "streamxl": ["streamxl", "excel", "xlsm"],
         }
 
         for project, keywords in projects.items():
@@ -166,24 +179,29 @@ class UserContext:
         output += "👋 WELCOME BACK TO PYCOSTAUDIT!\n"
         output += "=" * 80 + "\n\n"
 
-        # Show detected context
-        if profile["projects"]:
-            output += f"📦 DETECTED PROJECTS: {', '.join(profile['projects'])}\n"
-
-        output += f"📊 YOUR USAGE:\n"
+        output += f"📊 YOUR ACTIVITY:\n"
         output += f"   • Sessions: {profile['sessions_count']}\n"
-        output += f"   • Tokens: {profile['total_tokens']:,}\n"
-        output += f"   • Estimated daily cost: ${profile['daily_cost_estimate']:.2f}\n"
         output += f"   • Plan: {profile['plan_type']}\n\n"
 
-        # Show contextual options
-        output += "🎯 RECOMMENDED NEXT STEPS (based on YOUR usage):\n"
-        for num, action, reason in self.get_contextual_options():
+        # Show detected projects as PRIMARY navigation
+        if profile["projects"]:
+            output += f"📦 YOUR ACTIVE PROJECTS:\n"
+            for proj, count in sorted(
+                profile["active_projects"].items(),
+                key=lambda x: x[1],
+                reverse=True
+            ):
+                output += f"   • {proj.upper()}: {count} sessions\n"
+            output += "\n   Type project name to analyze costs for that project\n\n"
+
+        # Show general options
+        output += "🎯 ANALYZE ACROSS ALL PROJECTS:\n"
+        for num, action, reason in self.get_contextual_options()[:3]:
             output += f"   {num}. {action} → {reason}\n"
 
-        output += "\n📚 OTHER OPTIONS:\n"
-        output += '   "all" = See all 34 analyses\n'
-        output += '   "path" = Learning sequence\n'
+        output += "\n📚 EXPLORE:\n"
+        output += '   "all" = See all 34 analysis types\n'
+        output += '   "path" = Recommended learning sequence\n'
         output += "   1-34 = Run specific analysis\n"
 
         output += "\n" + "=" * 80 + "\n"
@@ -243,3 +261,26 @@ class UserContext:
             "💡 QUICK WIN: Run anomaly detection (#4) "
             "to find unusual spending patterns."
         )
+
+    def get_project_cost_insights(self, project_name: str) -> str:
+        """Get specific cost insights for a single project"""
+        project_lower = project_name.lower()
+        session_count = self.active_projects.get(project_lower, 0)
+
+        output = "\n" + "=" * 80 + "\n"
+        output += f"📊 COST ANALYSIS FOR {project_name.upper()}\n"
+        output += "=" * 80 + "\n\n"
+
+        output += f"Sessions: {session_count}\n"
+        output += f"Your focus: This is one of {len(self.active_projects)} active projects\n\n"
+
+        output += "🎯 RECOMMENDED ANALYSES FOR THIS PROJECT:\n"
+        output += "  1. Cost breakdown — Where does this project's budget go?\n"
+        output += "  2. Anomalies — Any unusual spending patterns?\n"
+        output += "  3. Recommendations — How to optimize this project?\n"
+        output += "  4. Trends — Is this project getting more expensive?\n"
+        output += "  5. Comparison — How does this compare to other projects?\n"
+
+        output += "\n" + "=" * 80 + "\n"
+
+        return output

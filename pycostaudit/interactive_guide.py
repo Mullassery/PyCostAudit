@@ -184,6 +184,32 @@ class InteractiveGuide:
         return output
 
     @staticmethod
+    def show_project_options(projects: dict) -> str:
+        """Show cost analysis options per project"""
+        output = "\n" + "=" * 80 + "\n"
+        output += "📦 ANALYZE YOUR PROJECTS\n"
+        output += "=" * 80 + "\n\n"
+
+        # Sort by session count
+        sorted_projects = sorted(projects.items(), key=lambda x: x[1], reverse=True)
+
+        for project, session_count in sorted_projects:
+            output += f"• {project.upper()}\n"
+            output += f"  Sessions: {session_count}\n"
+            output += f"  Options:\n"
+            output += f"    ├─ Cost breakdown for {project}\n"
+            output += f"    ├─ Anomalies in {project}\n"
+            output += f"    ├─ Optimization for {project}\n"
+            output += f"    └─ Trend analysis for {project}\n\n"
+
+        output += "=" * 80 + "\n"
+        output += "Type project name to analyze it specifically\n"
+        output += "Type \"all\" to analyze all projects together\n"
+        output += "=" * 80 + "\n"
+
+        return output
+
+    @staticmethod
     def format_result_with_options(
         analysis_result: str,
         analysis_type: AnalysisType,

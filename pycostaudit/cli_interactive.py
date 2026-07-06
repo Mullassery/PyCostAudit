@@ -36,20 +36,28 @@ class InteractiveCLI:
         This is the main entry point for Claude Code integration.
         Every response includes available next steps.
         """
-        user_input = user_input.strip().lower()
+        user_input = user_input.strip()
+        user_input_lower = user_input.lower()
 
         # Handle special commands
-        if user_input == "all":
+        if user_input_lower == "all":
             return InteractiveGuide.show_all_options()
 
-        if user_input == "path":
+        if user_input_lower == "path":
             return InteractiveGuide.show_learning_path()
 
-        if user_input == "help":
+        if user_input_lower == "help":
             return self._show_help_with_options()
 
-        if user_input in ["quit", "exit"]:
+        if user_input_lower in ["quit", "exit"]:
             return "Thanks for using PyCostAudit! 👋\nBye!"
+
+        if user_input_lower == "projects":
+            return InteractiveGuide.show_project_options(self.user_context.active_projects)
+
+        # Check if input is a project name
+        if user_input_lower in self.user_context.active_projects:
+            return self.user_context.get_project_cost_insights(user_input)
 
         # Try to parse as analysis number
         try:
@@ -63,10 +71,13 @@ class InteractiveCLI:
         except ValueError:
             pass
 
-        # If not a number, it's a natural language question
-        # In production, this would route to Claude API with context
+        # If not a number or known project, show error with suggestions
         return PromptFlow.error_with_options(
-            f"Didn't understand '{user_input}'. Try a number 1-34 or use \"all\" to see options."
+            f"Didn't recognize '{user_input}'. Try:\n"
+            "  • A number 1-34 (analysis)\n"
+            "  • Project name (statguard, prismnote, etc.)\n"
+            "  • \"all\" (see all options)\n"
+            "  • \"projects\" (list your projects)"
         )
 
     def _get_analysis_prompt(self, option_num: int) -> str:
