@@ -5,10 +5,28 @@ Enables users to create tailored cost analysis reports without code.
 
 import json
 import csv
+import io
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional, Callable
 from dataclasses import dataclass, field
 from enum import Enum
+
+try:
+    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.units import inch
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib import colors
+    HAS_REPORTLAB = True
+except ImportError:
+    HAS_REPORTLAB = False
+
+try:
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    HAS_OPENPYXL = True
+except ImportError:
+    HAS_OPENPYXL = False
 
 from .advanced_filters import AdvancedFilter, Aggregator, AggregationFunction, TimeBucket, PresetFilter
 
@@ -370,7 +388,135 @@ class GeneratedReport:
 
         return md
 
-    def export(self, format: ExportFormat) -> str:
+    def export_pdf(self) -> bytes:
+        """Export as PDF (requires reportlab)"""
+        if not HAS_REPORTLAB:
+            raise ImportError("reportlab is required for PDF export. Install with: pip install reportlab")
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        elements = []
+        styles = getSampleStyleSheet()
+
+        # Title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=24,
+            textColor=colors.HexColor('#1a1a2e'),
+            spaceAfter=30,
+        )
+        elements.append(Paragraph(self.metadata.name, title_style))
+        elements.append(Paragraph(self.metadata.description, styles['Normal']))
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # Summary section
+        elements.append(Paragraph("Summary", styles['Heading2']))
+        summary_data = [
+            ["Metric", "Value"],
+            ["Generated", self.metadata.generated_at.strftime("%Y-%m-%d %H:%M:%S")],
+            ["Records", str(len(self.raw_data))],
+            ["Total Cost", f"${sum(item.get('total_cost', 0) for item in self.raw_data):.2f}"],
+            ["Report Type", self.metadata.report_type.value],
+        ]
+        summary_table = Table(summary_data, colWidths=[2*inch, 2*inch])
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0099cc')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ]))
+        elements.append(summary_table)
+        elements.append(Spacer(1, 0.3 * inch))
+
+        # Data table
+        data = self.aggregated_data if self.aggregated_data else self.raw_data
+        if data:
+            elements.append(Paragraph("Detailed Data", styles['Heading2']))
+            fieldnames = sorted(list(set().union(*(d.keys() for d in data))))[:6]  # Limit to 6 columns for readability
+
+            table_data = [fieldnames]
+            for row in data[:20]:  # Limit to 20 rows for PDF readability
+                table_data.append([str(row.get(field, '')) for field in fieldnames])
+
+            data_table = Table(table_data, colWidths=[1.2*inch]*len(fieldnames))
+            data_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#cccccc')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+            ]))
+            elements.append(data_table)
+
+        doc.build(elements)
+        return buffer.getvalue()
+
+    def export_excel(self) -> bytes:
+        """Export as Excel (requires openpyxl)"""
+        if not HAS_OPENPYXL:
+            raise ImportError("openpyxl is required for Excel export. Install with: pip install openpyxl")
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Report"
+
+        # Header
+        ws['A1'] = self.metadata.name
+        ws['A1'].font = Font(size=16, bold=True, color="FFFFFF")
+        ws['A1'].fill = PatternFill(start_color="1a1a2e", end_color="1a1a2e", fill_type="solid")
+        ws.merge_cells('A1:F1')
+
+        # Summary section
+        ws['A3'] = "Summary"
+        ws['A3'].font = Font(size=12, bold=True)
+
+        ws['A4'] = "Generated"
+        ws['B4'] = self.metadata.generated_at.strftime("%Y-%m-%d %H:%M:%S")
+        ws['A5'] = "Records"
+        ws['B5'] = len(self.raw_data)
+        ws['A6'] = "Total Cost"
+        ws['B6'] = sum(item.get('total_cost', 0) for item in self.raw_data)
+        ws['B6'].number_format = '$#,##0.00'
+
+        # Data section
+        data = self.aggregated_data if self.aggregated_data else self.raw_data
+        if data:
+            ws['A8'] = "Detailed Data"
+            ws['A8'].font = Font(size=12, bold=True)
+
+            fieldnames = sorted(list(set().union(*(d.keys() for d in data))))
+
+            # Headers
+            for col, field in enumerate(fieldnames, 1):
+                cell = ws.cell(row=9, column=col)
+                cell.value = field
+                cell.font = Font(bold=True, color="FFFFFF")
+                cell.fill = PatternFill(start_color="0099cc", end_color="0099cc", fill_type="solid")
+                cell.alignment = Alignment(horizontal="center")
+
+            # Data rows
+            for row_idx, row_data in enumerate(data, 10):
+                for col_idx, field in enumerate(fieldnames, 1):
+                    cell = ws.cell(row=row_idx, column=col_idx)
+                    cell.value = row_data.get(field, '')
+                    if isinstance(cell.value, (int, float)) and 'cost' in field.lower():
+                        cell.number_format = '$#,##0.00'
+
+            # Auto-adjust column widths
+            for col in range(1, len(fieldnames) + 1):
+                ws.column_dimensions[chr(64 + col)].width = 15
+
+        buffer = io.BytesIO()
+        wb.save(buffer)
+        buffer.seek(0)
+        return buffer.getvalue()
+
+    def export(self, format: ExportFormat) -> Any:
         """Export report in specified format"""
         if format == ExportFormat.JSON:
             return self.export_json()
@@ -380,6 +526,10 @@ class GeneratedReport:
             return self.export_html()
         elif format == ExportFormat.MARKDOWN:
             return self.export_markdown()
+        elif format == ExportFormat.PDF:
+            return self.export_pdf()
+        elif format == ExportFormat.EXCEL:
+            return self.export_excel()
         else:
             raise ValueError(f"Unsupported export format: {format}")
 
