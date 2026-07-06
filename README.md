@@ -43,6 +43,52 @@ Annual savings: $10,200 (100% returned to your budget)
 
 ---
 
+## 🎯 Claude Code Integration (v0.7.0)
+
+**PyCostAudit is built INTO Claude Code's workflow, not as a separate tool.**
+
+### How It Works
+
+When you install PyCostAudit, it immediately understands:
+- ✅ **Your Claude Code plan** (Free, Pro, Enterprise)
+- ✅ **Your active projects** (StatGuard, ClusterAudienceKit, etc.)
+- ✅ **Your work patterns** (What languages, tools, time of day)
+- ✅ **What analysis would help** (Shows relevant options, not all 34)
+
+### Interactive Navigation
+
+After every analysis, you see **suggested next steps** tailored to your work:
+
+```
+After running "Detect anomalies":
+  Your anomalies analysis shows 3 spikes...
+  
+  🎯 WHAT WOULD YOU LIKE TO EXPLORE NEXT?
+  
+  3. Which projects cost the most?
+     → Focus optimization efforts
+  
+  6. Get personalized recommendations
+     → ROI-ranked suggestions for YOUR usage
+  
+  20. Set a monthly budget
+     → Lock in spending limits
+```
+
+No menus to navigate. No "what can I even do?" moments. Just **next logical steps** based on your actual projects and usage.
+
+### 34 Built-In Analyses (Always Available)
+
+Every interaction shows relevant options:
+- **34 analysis types** organized by use case
+- **Context-aware menus** (shows what matters to YOU)
+- **Learn by doing** (no documentation to read)
+- **Works in Claude Code terminal** (seamless integration)
+
+See [CLAUDE_CODE_INTEGRATION.md](./CLAUDE_CODE_INTEGRATION.md) for complete integration guide.
+
+---
+
 ## Get Started in 2 Minutes
 
 ### Install & Use (Choose Your Style)
