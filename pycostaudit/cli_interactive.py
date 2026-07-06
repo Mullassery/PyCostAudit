@@ -12,6 +12,7 @@ from .interactive_guide import (
 )
 from .user_context import UserContext
 from .cost_calculator import CostCalculator
+from .reporting import ReportGenerator
 
 
 class InteractiveCLI:
@@ -21,6 +22,7 @@ class InteractiveCLI:
         self.last_analysis_type = None
         self.user_context = UserContext()  # Auto-loads from ~/.claude/history.jsonl
         self.cost_calculator = CostCalculator()  # Calculates real costs
+        self.report_gen = ReportGenerator(self.cost_calculator)  # Generate reports
 
     def welcome(self) -> str:
         """Display welcome with personalized options from user context"""
@@ -136,6 +138,14 @@ class InteractiveCLI:
             return self._analyze_recommendations()
         elif option_num == 10:
             return self._analyze_forecast()
+        elif option_num == 11:
+            return self._generate_weekly_report()
+        elif option_num == 12:
+            return self._generate_executive_summary()
+        elif option_num == 13:
+            return self._generate_slack_export()
+        elif option_num == 14:
+            return self._generate_email_report()
         else:
             # Other analyses show placeholder for now
             output = f"\n📊 RUNNING: {title}\n"
@@ -306,6 +316,84 @@ class InteractiveCLI:
 
         # Show next steps
         output += InteractiveGuide.show_next_steps(AnalysisType.FORECASTING)
+
+        return output
+
+    def _generate_weekly_report(self) -> str:
+        """TIER 3 TASK 7a: Weekly report (Option #11)"""
+        output = "\n📊 WEEKLY COST REPORT\n"
+        output += "=" * 80 + "\n\n"
+
+        report = self.report_gen.generate_weekly_report()
+        output += report
+
+        output += "\n\n✅ Report ready to export\n"
+        output += "   Available formats: PDF, Excel, HTML, Markdown, JSON\n"
+        output += "   Share via: Email, Slack, or download\n"
+
+        output += "\n" + "=" * 80 + "\n"
+        output += InteractiveGuide.show_next_steps(AnalysisType.TRENDS)
+
+        return output
+
+    def _generate_executive_summary(self) -> str:
+        """TIER 3 TASK 7b: Executive summary (Option #12)"""
+        output = "\n📋 EXECUTIVE SUMMARY\n"
+        output += "=" * 80 + "\n\n"
+
+        summary = self.report_gen.generate_executive_summary()
+        output += summary
+
+        output += "\n✅ Ready to share with stakeholders\n"
+        output += "   Perfect for: Management, C-level, Budget meetings\n"
+
+        output += "\n" + "=" * 80 + "\n"
+        output += InteractiveGuide.show_next_steps(AnalysisType.TRENDS)
+
+        return output
+
+    def _generate_slack_export(self) -> str:
+        """TIER 3 TASK 7c: Slack export (Option #13)"""
+        output = "\n🚀 SLACK INTEGRATION\n"
+        output += "=" * 80 + "\n\n"
+
+        slack_msg = self.report_gen.generate_slack_message()
+
+        output += "📱 SLACK MESSAGE READY:\n\n"
+        output += f"{slack_msg['text']}\n\n"
+
+        breakdown = self.cost_calculator.get_cost_breakdown()
+        output += "Costs by Project:\n"
+        for project, data in breakdown['projects'].items():
+            output += f"  • {project.upper()}: ${data['cost_usd']}\n"
+
+        output += "\n✅ To send to Slack:\n"
+        output += "   1. Get your Slack Webhook URL\n"
+        output += "   2. Run: pycostaudit slack --webhook https://hooks.slack.com/...\n"
+        output += "   3. Reports sent automatically (daily/weekly)\n"
+
+        output += "\n" + "=" * 80 + "\n"
+        output += InteractiveGuide.show_next_steps(AnalysisType.TRENDS)
+
+        return output
+
+    def _generate_email_report(self) -> str:
+        """TIER 3 TASK 7d: Email report (Option #14)"""
+        output = "\n📧 EMAIL REPORT\n"
+        output += "=" * 80 + "\n\n"
+
+        email_data = self.report_gen.generate_email_report()
+
+        output += f"Subject: {email_data['subject']}\n\n"
+        output += email_data['text']
+
+        output += "\n\n✅ To send via email:\n"
+        output += "   1. Configure SMTP settings\n"
+        output += "   2. Run: pycostaudit email --to your@email.com\n"
+        output += "   3. Automated daily/weekly delivery\n"
+
+        output += "\n" + "=" * 80 + "\n"
+        output += InteractiveGuide.show_next_steps(AnalysisType.TRENDS)
 
         return output
 
