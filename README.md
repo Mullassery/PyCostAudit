@@ -217,7 +217,7 @@ A: Claude Code only. Claude Desktop and Claude Web use separate billing systems.
 A: SQLite by default (local, private). PostgreSQL supported for production.
 
 **Q: Is this production-ready?**  
-A: Yes. v0.9.0 includes ML forecasting, compliance frameworks, and full API.
+A: **⚠️ NO - Beta Release (v0.9.0).** See [ROADMAP.md](./ROADMAP_2026.md) for production readiness plan. Current limitations: no error handling, limited testing, incomplete authentication. Use for evaluation only.
 
 **Q: Can multiple people use it?**  
 A: Yes. The database and API support multiple users with role-based access.
