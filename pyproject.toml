@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.9"
 license = {text = "MIT"}
 authors = [
+maintainers = [{ name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com" }]
     {name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com"}
 ]
 keywords = [
@@ -35,7 +36,7 @@ keywords = [
     "billing-optimization"
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
