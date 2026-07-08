@@ -8,11 +8,9 @@ version = "1.0.0"
 description = "Track Claude API costs across 15+ dimensions — ML forecasting, budget alerts, compliance reporting. Identify hidden cost multipliers (3.6x-1000x) and save 50-80% on LLM spending."
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "MIT"}
-authors = [
+license = { text = "MIT" }
+authors = [{ name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com" }]
 maintainers = [{ name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com" }]
-    {name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com"}
-]
 keywords = [
     "claude",
     "llm",
