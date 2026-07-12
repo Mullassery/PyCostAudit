@@ -7,7 +7,6 @@ from typing import List, Tuple, Dict, Optional
 from pathlib import Path
 import json
 from datetime import datetime
-import pickle
 
 
 class TokenEstimationModel:
@@ -167,8 +166,8 @@ class TokenEstimationModel:
         """Load trained model from disk"""
         if self.model_path.exists():
             try:
-                with open(self.model_path, "rb") as f:
-                    data = pickle.load(f)
+                with open(self.model_path, "r") as f:
+                    data = json.load(f)
                     self.model_stats = data.get("stats", self.model_stats)
                     self.training_data = data.get("training_data", [])
             except Exception:
@@ -178,8 +177,8 @@ class TokenEstimationModel:
         """Save trained model to disk"""
         self.model_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            with open(self.model_path, "wb") as f:
-                pickle.dump({
+            with open(self.model_path, "w") as f:
+                json.dump({
                     "stats": self.model_stats,
                     "training_data": self.training_data,
                 }, f)
