@@ -320,3 +320,24 @@ MIT License — See [LICENSE](LICENSE)
 ---
 
 **Stop wasting money. Start tracking what matters.** 💚
+
+## 🔒 Security & Error Handling
+
+PyCostAudit includes comprehensive error messages to guide users through configuration and troubleshooting:
+
+- **Configuration Errors**: Clear guidance on SMTP, database, and API setup
+- **Data Validation**: Detailed messages for cost data format issues
+- **API Errors**: Actionable steps for authentication problems
+- **Forecasting**: Helpful suggestions when forecasts can't be generated
+
+See `pycostaudit/error_messages.py` for all error message details and guidance.
+
+### Security Roadmap
+
+- ✅ v1.0.0: Pickle RCE removed, dependencies pinned
+- ✅ v1.0.1: Secrets removed from logs, environment-based config
+- 🔄 v1.1.0: JWT authentication on dashboard, specific exception handling
+- 🔄 v1.2.0: CSRF protection, comprehensive error handling
+- 📋 v1.3.0: Rate limiting, advanced security features
+
+Full security roadmap: [ROADMAP_HONEST.md](ROADMAP_HONEST.md)
