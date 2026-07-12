@@ -341,3 +341,38 @@ See `pycostaudit/error_messages.py` for all error message details and guidance.
 - 📋 v1.3.0: Rate limiting, advanced security features
 
 Full security roadmap: [ROADMAP_HONEST.md](ROADMAP_HONEST.md)
+
+## 🆕 What's New in v1.3.0 (Q1 2027)
+
+### Hard Budget Enforcement 🛡️
+Prevent runaway AI costs with automatic budget stops:
+
+```python
+from pycostaudit import set_budget_limit, BudgetPeriod, EnforcementAction
+
+# Set daily budget limit with hard stop
+set_budget_limit(10.0, BudgetPeriod.DAILY, EnforcementAction.STOP)
+
+# Now raises BudgetExceededError if daily spend > $10
+```
+
+**Multi-Period Budgeting:**
+- Hourly limits (catch cost spikes in minutes)
+- Daily limits (prevent daily overages)
+- Monthly limits (traditional budget constraint)
+- Yearly limits (annual cap)
+- Lifetime limits (total project budget)
+
+**Enforcement Actions:**
+- `ALERT`: Log warning, continue
+- `THROTTLE`: Reduce rate, continue
+- `STOP`: Hard stop, raise exception (prevents damage)
+- `WEBHOOK`: Trigger custom callback for automation
+
+**Why This Matters:**
+- Agentic loops can burn $100s-$1000s in minutes
+- Teams at Uber exhausted annual AI budget by April 2026
+- Hard stops prevent damage before it happens
+- Essential for autonomous agents and concurrent requests
+
+See `pycostaudit/_budget_enforcement.py` for implementation.
