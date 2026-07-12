@@ -199,7 +199,7 @@ class AlertsService:
             return response.status_code == 200
 
         except Exception as e:
-            print(f"Error sending Slack alert: {e}")
+            logger.error("Error sending Slack alert", exc_info=True)
             return False
 
     def send_email_alert(self, email_address: str, alert: AlertHistory) -> bool:
@@ -213,7 +213,7 @@ class AlertsService:
             from_email = os.getenv("PYCOSTAUDIT_FROM_EMAIL", smtp_user)
 
             if not smtp_user or not smtp_password:
-                print("SMTP credentials not configured")
+                import logging; logger = logging.getLogger(__name__); logger.warning("SMTP credentials not configured")
                 return False
 
             # Create email
@@ -261,7 +261,7 @@ class AlertsService:
             return True
 
         except Exception as e:
-            print(f"Error sending email alert: {e}")
+            logger.error("Error sending email alert", exc_info=True)
             return False
 
     def send_sms_alert(self, phone_number: str, alert: AlertHistory) -> bool:
@@ -273,7 +273,7 @@ class AlertsService:
             twilio_from_number = os.getenv("TWILIO_PHONE_NUMBER")
 
             if not all([twilio_account_sid, twilio_auth_token, twilio_from_number]):
-                print("Twilio credentials not configured")
+                logger.warning("Twilio credentials not configured")
                 return False
 
             # Format message
