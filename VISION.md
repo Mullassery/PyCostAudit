@@ -60,13 +60,36 @@ PyTokenCalc solves a single, critical problem in multi-provider LLM development:
 
 ## What PyTokenCalc is NOT
 
-❌ **NOT financial calculation**: Financial analysis is a separate responsibility
-❌ **NOT usage tracking**: Tracking usage over time is a separate responsibility
-❌ **NOT optimization**: Model selection optimization is a separate responsibility
-❌ **NOT a service**: No backend, no web API, no database server
-❌ **NOT a dashboard/UI**: Pure Python library for programmatic access
-❌ **NOT alerting**: No notifications, no integrations
-❌ **NOT forecasting**: No ML predictions, no anomaly detection
+❌ **NOT intelligence/analytics** → Use OpenAnchor for this
+  - Does not explain WHY tokens were consumed
+  - Does not detect patterns or trends
+  - Does not provide attribution (system prompt vs user input)
+  - Does not recommend optimizations
+
+❌ **NOT financial calculation** → Belongs in separate projects
+  - Does not calculate costs (user provides pricing)
+  - Does not track budgets
+  - Does not generate reports/exports
+
+❌ **NOT usage tracking/history** → Belongs in separate projects
+  - Does not aggregate usage over time
+  - Does not store historical data
+  - Does not detect anomalies
+
+❌ **NOT optimization/recommendations** → Use OpenAnchor for this
+  - Does not suggest model changes
+  - Does not recommend cost reductions
+  - Does not perform A/B testing
+
+❌ **NOT a service** → Pure library
+  - No REST API server
+  - No database server
+  - No message queue or async workers
+
+❌ **NOT monitoring/alerting** → Belongs in separate projects
+  - No real-time dashboards
+  - No notifications or integrations
+  - No metrics collection or distributed tracing
 
 ---
 
@@ -151,15 +174,73 @@ Let users extend PyTokenCalc rather than bloating the core:
 
 ---
 
+## Relationship: PyTokenCalc ↔ OpenAnchor
+
+```
+┌─────────────────────────────────────────────┐
+│         OpenAnchor                          │
+│  Intelligence Layer                         │
+│  • Attribution (who used tokens)            │
+│  • Pattern detection (what changed)         │
+│  • Trends (is it growing?)                  │
+│  • Recommendations (what to do)             │
+│  • Observability (Grafana, OTEL, etc)       │
+└────────────────────▲─────────────────────────┘
+                     │
+             Token Count Events
+                     │
+┌────────────────────┴─────────────────────────┐
+│         PyTokenCalc                         │
+│  Accounting Layer                           │
+│  • Unified token counting API               │
+│  • 20+ provider support                     │
+│  • Local + cached API tokenizers            │
+│  • Exact counts + breakdowns                │
+│  • Modality awareness (text, image, etc)    │
+└─────────────────────────────────────────────┘
+```
+
+### What PyTokenCalc Provides to OpenAnchor
+PyTokenCalc is the **source of truth** for all token counts:
+- **Total input token count** (exact number, NO breakdown by component)
+- **Total output token count** (exact number, NO breakdown by component)
+- **By modality breakdown** (text tokens, image tokens, etc - automatic)
+- Model and provider metadata
+- Timestamp and context (user_id, session_id, etc)
+
+**CRITICAL:** PyTokenCalc provides TOTALS ONLY.  
+OpenAnchor breaks down those totals by component (system prompt, user input, context, etc).
+
+Example:
+- PyTokenCalc returns: `{input_tokens: 3200, output_tokens: 450}`
+- OpenAnchor analyzes: "3200 = 500 system + 1200 user + 1000 history + 500 overhead"
+
+OpenAnchor consumes these totals and transforms them into intelligence.
+
+### What PyTokenCalc Does NOT Do (OpenAnchor Responsibility)
+❌ Explain WHY tokens were consumed (OpenAnchor's job)
+❌ Detect patterns or anomalies (OpenAnchor's job)
+❌ Provide attribution breakdown (OpenAnchor's job)
+❌ Generate recommendations (OpenAnchor's job)
+❌ Integrate with observability platforms (OpenAnchor's job)
+
+---
+
 ## Related But Separate Projects
 
 These features belong in separate projects that *use* PyTokenCalc:
 
-| Feature | Responsibility | Notes |
+| Feature | Who Does It | Notes |
 |---------|---------|--------|
-| Model optimization | Separate project/user code | Builds on PyTokenCalc's token counting |
-| Financial analysis | Separate project/user code | Use token counts with your own data |
-| Usage tracking | Separate project/user code | Aggregate usage over time |
+| **Token intelligence** | **OpenAnchor** | Attribution, patterns, recommendations |
+| Attribution (why tokens) | **OpenAnchor** | Not in PyTokenCalc scope |
+| Pattern detection | **OpenAnchor** | Not in PyTokenCalc scope |
+| Trend analysis | **OpenAnchor** | Not in PyTokenCalc scope |
+| Optimization recommendations | **OpenAnchor** | Not in PyTokenCalc scope |
+| Observability integration | **OpenAnchor** | Not in PyTokenCalc scope |
+| Model optimization | User code | Builds on PyTokenCalc's counts |
+| Financial analysis | User code | Use token counts with pricing data |
+| Usage tracking | User code | Aggregate counts over time |
 | Dashboard/UI | Separate project | Not in PyTokenCalc scope |
 | Forecasting ML | Separate project | Not in PyTokenCalc scope |
 
