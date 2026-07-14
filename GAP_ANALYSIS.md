@@ -8,6 +8,34 @@
 
 ---
 
+## CRITICAL SCOPE BOUNDARY
+
+### What PyTokenCalc WILL NOT Do ❌
+- **NO pricing lookups** - Not a source of pricing information
+- **NO cost calculations** - Not a financial calculator
+- **NO spending tracking** - Not a billing or accounting tool
+- **NO provider rate monitoring** - Not tracking provider prices
+- **NO financial metadata** - No pricing data in model registry
+
+### What PyTokenCalc WILL Do ✅
+- **Count tokens** - Determine token consumption accurately
+- **Analyze token distribution** - Break down where tokens go
+- **Validate token counts** - Verify tokenization accuracy
+- **Track token usage patterns** - Understand usage over time
+- **Optimize token usage** - Help reduce unnecessary token consumption
+- **Support all model types** - Work across any provider
+
+**Model Metadata Registry contains:**
+- Context window limits
+- Model capabilities (vision, function calling, etc.)
+- Tokenizer information
+- Model version history
+- **NOT:** Pricing, cost rates, or financial data
+
+---
+
+---
+
 ## Capability Comparison Matrix
 
 ### CURRENT CAPABILITIES (v0.7) ✅

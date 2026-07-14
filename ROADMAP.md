@@ -14,6 +14,39 @@ Like Requests became the standard for HTTP, Pandas for data analysis, and SQLAlc
 
 ---
 
+## CRITICAL SCOPE BOUNDARY ⛔
+
+### PyTokenCalc is PURELY about TOKENS, not money
+
+**What we DO:**
+- ✅ Count tokens accurately
+- ✅ Analyze token distribution
+- ✅ Track token usage patterns
+- ✅ Validate tokenization
+- ✅ Optimize token consumption
+
+**What we DON'T do:**
+- ❌ Look up pricing
+- ❌ Calculate costs
+- ❌ Track spending
+- ❌ Monitor provider rates
+- ❌ Handle financial data
+
+**Model Metadata contains:**
+- Context window limits
+- Model capabilities
+- Tokenizer info
+- Version history
+
+**Model Metadata does NOT contain:**
+- ❌ Pricing information
+- ❌ Cost rates
+- ❌ Financial data
+
+---
+
+---
+
 ## Roadmap Timeline
 
 ```
@@ -508,7 +541,7 @@ analyzer = HistoricalAnalyzer()
 history = analyzer.track_model("gpt-4o", start_date="2026-01-01")
 
 print(history.tokenization_changes)    # List of changes
-print(history.price_changes)           # List of price changes
+print(history.model_updates)           # List of model version changes
 print(history.context_limit_changes)   # Context expansion history
 
 # Detect anomalies
