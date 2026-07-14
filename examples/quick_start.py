@@ -1,132 +1,189 @@
 #!/usr/bin/env python3
 """
-CostReporter Quick Start Example
+PyTokenCalc v0.7 Quick Start Example
 
-Shows the MVP MVP flow:
-1. Track operations silently
-2. Analyze costs with multipliers
-3. Get optimization recommendations
+Shows how to:
+1. Count tokens for different models
+2. Calculate costs across providers
+3. Track operations and get breakdowns
 """
 
-from pycost_reporter import CostReporter
-import json
+from pytokencalc import CostCalculatorV6, UsageData
+from pytokencalc.tokenizers import TokenCounterRegistry
 
 
-def main():
-    # Initialize (creates local SQLite database)
-    reporter = CostReporter(db_path="~/.cost-reporter/demo.db")
-
-    print("🚀 CostReporter MVP Demo")
+def token_counting_example():
+    """Demonstrate token counting across providers"""
+    print("\n" + "=" * 60)
+    print("TOKEN COUNTING EXAMPLE")
     print("=" * 60)
 
-    # Example 1: Simple API call (baseline cost)
-    print("\n1️⃣ Simple API call (baseline)")
-    cost = reporter.track_operation(
-        operation_type="api_call",
-        tokens_input=1000,
-        tokens_output=500,
-        model="claude-3-5-haiku",
-    )
-    print(f"   Cost: ${cost['cost_usd']:.4f}")
-    print(f"   Multiplier: {cost['multiplier']}x")
+    registry = TokenCounterRegistry()
 
-    # Example 2: PDF read from local disk (1.2x multiplier)
-    print("\n2️⃣ PDF read from local disk (1.2x multiplier)")
-    cost = reporter.track_operation(
-        operation_type="file_read",
-        tokens_input=450,
-        tokens_output=120,
-        model="claude-3-5-haiku",
-        file_source="pdf_local",
-    )
-    print(f"   Cost: ${cost['cost_usd']:.4f}")
-    print(f"   Multiplier: {cost['multiplier']}x")
+    # Count tokens for different models
+    text = "Your prompt here: Analyze this data and provide insights."
 
-    # Example 3: PDF read via URL (3.6x multiplier!) - EXPENSIVE
-    print("\n3️⃣ PDF read via URL (3.6x multiplier) ⚠️ EXPENSIVE")
-    cost = reporter.track_operation(
-        operation_type="file_read",
-        tokens_input=450,
-        tokens_output=120,
-        model="claude-3-5-haiku",
-        file_source="pdf_url",
-    )
-    print(f"   Cost: ${cost['cost_usd']:.4f}")
-    print(f"   Multiplier: {cost['multiplier']}x")
-    print(f"   💡 Moving to disk would save: ${cost['cost_usd'] * (1 - 1.0/3.6):.4f}")
+    models = ["gpt-4o", "llama-70b", "claude-3-5-sonnet"]
+    for model in models:
+        try:
+            result = registry.count_tokens(model, text)
+            print(f"{model:20} → {result.input_tokens:4d} tokens (source: {result.source})")
+        except Exception as e:
+            print(f"{model:20} → Error: {str(e)[:40]}")
 
-    # Example 4: Browser scraping (55x multiplier!) - KILLER
-    print("\n4️⃣ Browser scraping (55x multiplier) 🔴 KILLER COST")
-    cost = reporter.track_operation(
-        operation_type="browser_op",
-        tokens_input=1000,
-        tokens_output=500,
-        model="claude-3-5-haiku",
-    )
-    print(f"   Cost: ${cost['cost_usd']:.4f}")
-    print(f"   Multiplier: {cost['multiplier']}x")
 
-    # Example 5: MCP invocation (2.4x multiplier)
-    print("\n5️⃣ MCP invocation (2.4x multiplier)")
-    cost = reporter.track_operation(
-        operation_type="mcp_invocation",
-        tokens_input=100,
-        tokens_output=300,
-        model="claude-3-5-haiku",
-        mcp_name="web_search",
-    )
-    print(f"   Cost: ${cost['cost_usd']:.4f}")
-    print(f"   Multiplier: {cost['multiplier']}x")
-
-    # Example 6: Session-based tracking (root cause analysis)
-    print("\n6️⃣ Session-based tracking (group related operations)")
-    session_id = reporter.start_session("feature/auth-oauth")
-    reporter.tag_session("branch", "main", session_id)
-    reporter.tag_session("feature", "oauth2", session_id)
-
-    # Track multiple operations in session
-    reporter.track_operation(
-        operation_type="api_call",
-        tokens_input=500,
-        tokens_output=200,
-        model="claude-3-5-haiku",
-        session_id=session_id,
-    )
-    reporter.track_operation(
-        operation_type="file_read",
-        tokens_input=450,
-        tokens_output=120,
-        model="claude-3-5-haiku",
-        file_source="pdf_url",  # 3.6x!
-        session_id=session_id,
-    )
-
-    analysis = reporter.end_session(session_id)
-    print(f"   Session cost: ${analysis['total_cost_usd']:.4f}")
-
-    # Example 7: Daily cost breakdown
-    print("\n7️⃣ Daily cost breakdown")
-    breakdown = reporter.analyze_daily()
-    print(f"   Total spend today: ${breakdown['total_cost_usd']:.2f}")
-    print(f"   Total tokens: {breakdown['total_tokens']:,}")
-
-    # Example 8: Get recommendations
-    print("\n8️⃣ Cost optimization recommendations")
-    recs = reporter.get_recommendations()
-    if "recommendations" in recs:
-        for i, rec in enumerate(recs["recommendations"][:3], 1):
-            print(f"   {i}. {rec.get('action', 'N/A')}")
-            print(f"      Savings: ${rec.get('savings', 'N/A')}")
-
+def cost_calculation_example():
+    """Demonstrate cost calculation across providers"""
     print("\n" + "=" * 60)
-    print("✅ Demo complete!")
-    print("\nKey insights:")
-    print("  • PDF via URL = 3.6x more expensive than local disk")
-    print("  • Browser scraping = 55x more expensive than file read")
-    print("  • Instruction context = 10-50x hidden overhead")
-    print("  • Data warehouse queries = 100x-1000x+ expensive")
-    print("  • SaaS MCPs = 10-100x hidden internal overhead")
+    print("COST CALCULATION EXAMPLE")
+    print("=" * 60)
+
+    calc = CostCalculatorV6()
+
+    # Example 1: Claude (simple input/output model)
+    print("\n1️⃣ Claude 3.5 Sonnet")
+    usage = UsageData(
+        provider="anthropic",
+        model="claude-3-5-sonnet",
+        input_tokens=1_000_000,
+        output_tokens=500_000,
+        task_type="analysis"
+    )
+    cost = calc.calculate(usage)
+    print(f"   1M input + 500K output tokens → ${cost:.4f}")
+
+    # Example 2: GPT-4o (dual token model: full + mini)
+    print("\n2️⃣ GPT-4o (with mini tokens)")
+    usage = UsageData(
+        provider="openai",
+        model="gpt-4o",
+        input_tokens=1_000_000,
+        input_mini_tokens=500_000,  # Mini tokens cheaper
+        output_tokens=250_000,
+        task_type="coding"
+    )
+    cost = calc.calculate(usage)
+    print(f"   1M full + 500K mini input tokens → ${cost:.4f}")
+
+    # Example 3: Gemini (character-based)
+    print("\n3️⃣ Gemini 2 Flash (character-based billing)")
+    usage = UsageData(
+        provider="google",
+        model="gemini-2-flash",
+        input_characters=1_000_000_000,  # 1B characters
+        output_characters=500_000_000,
+        task_type="summarization"
+    )
+    cost = calc.calculate(usage)
+    print(f"   1B input + 500M output characters → ${cost:.4f}")
+
+    # Example 4: Groq (speed-tiered)
+    print("\n4️⃣ Groq Llama 70B (speed-tiered)")
+    usage = UsageData(
+        provider="groq",
+        model="llama-70b",
+        input_tokens=1_000_000,
+        output_tokens=500_000,
+        speed_tier="standard",
+        task_type="reasoning"
+    )
+    cost = calc.calculate(usage)
+    print(f"   Standard tier: ${cost:.4f}")
+
+    usage.speed_tier = "fastest"
+    cost = calc.calculate(usage)
+    print(f"   Fastest tier:  ${cost:.4f}")
+
+    # Example 5: Cost breakdown
+    print("\n5️⃣ Cost Breakdown")
+    print(f"   By provider: {calc.cost_by_provider()}")
+    print(f"   By model:    {calc.cost_by_model()}")
+    print(f"   By task:     {calc.cost_by_task_type()}")
+    print(f"   Total:       ${calc.total_cost():.4f}")
+
+
+def batch_operations_example():
+    """Demonstrate batch operations"""
+    print("\n" + "=" * 60)
+    print("BATCH OPERATIONS EXAMPLE")
+    print("=" * 60)
+
+    calc = CostCalculatorV6()
+
+    operations = [
+        UsageData(
+            provider="anthropic",
+            model="claude-3-5-sonnet",
+            input_tokens=100_000,
+            output_tokens=50_000,
+            task_type="analysis"
+        ),
+        UsageData(
+            provider="openai",
+            model="gpt-4o",
+            input_tokens=100_000,
+            output_tokens=50_000,
+            task_type="coding"
+        ),
+        UsageData(
+            provider="google",
+            model="gemini-2-flash",
+            input_characters=100_000_000,
+            output_characters=50_000_000,
+            task_type="summarization"
+        ),
+    ]
+
+    costs = calc.calculate_batch(operations)
+    total = sum(costs)
+
+    print(f"\nBatch of 3 operations:")
+    for i, (op, cost) in enumerate(zip(operations, costs), 1):
+        print(f"  {i}. {op.provider:12} {op.model:20} → ${cost:.4f}")
+
+    print(f"\nTotal cost: ${total:.4f}")
+
+
+def export_example():
+    """Demonstrate export functionality"""
+    print("\n" + "=" * 60)
+    print("EXPORT EXAMPLE")
+    print("=" * 60)
+
+    calc = CostCalculatorV6()
+
+    # Track some operations
+    calc.calculate(UsageData(
+        provider="anthropic",
+        model="claude-3-5-sonnet",
+        input_tokens=500_000,
+        output_tokens=250_000,
+        task_type="analysis"
+    ))
+
+    calc.calculate(UsageData(
+        provider="openai",
+        model="gpt-4o",
+        input_tokens=500_000,
+        output_tokens=250_000,
+        task_type="coding"
+    ))
+
+    # Export all operations
+    exported = calc.export()
+    print(f"\nExported {len(exported)} operations:")
+    for op in exported:
+        print(f"  {op['provider']:12} {op['model']:20} → ${op['cost_usd']:.4f}")
 
 
 if __name__ == "__main__":
-    main()
+    print("\n🚀 PyTokenCalc v0.7 Quick Start Guide")
+
+    token_counting_example()
+    cost_calculation_example()
+    batch_operations_example()
+    export_example()
+
+    print("\n" + "=" * 60)
+    print("✅ Examples complete!")
+    print("=" * 60)

@@ -8,6 +8,7 @@ from datetime import datetime
 from pytokencalc import (
     UsageData,
     CostCalculatorV6,
+    CostModel,
     ClaudeTokenModel,
     GPT4oTokenModel,
     GeminiCharacterModel,

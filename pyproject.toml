@@ -8,7 +8,7 @@ version = "0.7.0"
 description = "Multi-provider LLM token counter & cost calculator. Unified token counting and cost calculation across 20+ cloud providers and 10+ open-source APIs."
 readme = "README.md"
 requires-python = ">=3.9"
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 authors = [{ name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com" }]
 maintainers = [{ name = "Georgi Mammen Mullassery", email = "mullassery@gmail.com" }]
 keywords = [
@@ -48,41 +48,21 @@ classifiers = [
 ]
 
 dependencies = [
-    "sqlalchemy==2.0.23",
-    "pydantic==2.4.2",
-    "pydantic[email]==2.4.2",
-    "pandas==2.1.0",
-    "reportlab==4.0.7",
-    "openpyxl==3.11.0",
-    "fastapi==0.104.1",
-    "uvicorn==0.24.0",
+    "pydantic>=2.0",  # Data validation
 ]
 
-# Optional tokenizer support (installed separately for smaller footprint)
-# Phase 1: Local tokenizers
-optional-tokenizers = [
+[project.optional-dependencies]
+# Local tokenizers (Phase 1) - for token counting support
+tokenizers = [
     "tiktoken>=0.5.0",  # OpenAI GPT token counting
     "transformers>=4.30.0",  # Llama, Mistral, 1000+ models
     "sentencepiece>=0.1.99",  # SentencePiece dependency for HF models
 ]
 
-# Phase 2+: API-based tokenizers (not yet implemented)
-# optional-api-tokenizers = [
-#     "anthropic>=0.20.0",  # Anthropic Claude API
-#     "google-generativeai>=0.3.0",  # Google Gemini API
-# ]
-
-[project.optional-dependencies]
+# Development and testing
 dev = [
-    "pytest==7.4.3",
-    "pytest-cov==4.1.0",
-    "mypy==1.7.0",
-    "black==23.12.0",
-    "ruff==0.1.8",
-]
-
-postgres = [
-    "psycopg2-binary==2.9.9",
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
 ]
 
 [project.urls]

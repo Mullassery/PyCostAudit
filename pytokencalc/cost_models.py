@@ -194,12 +194,12 @@ class GeminiCharacterModel(CostModel):
 
     PRICING = {
         "gemini-2-flash": {
-            "input": 0.000000375,  # $3.75 per billion characters
-            "output": 0.0000015,   # $1.50 per billion characters
+            "input": 0.375,   # $0.375 per billion characters
+            "output": 1.50,   # $1.50 per billion characters
         },
         "gemini-1-5-pro": {
-            "input": 0.0075,
-            "output": 0.03,
+            "input": 7.50,    # $7.50 per billion characters
+            "output": 30.0,   # $30 per billion characters
         },
     }
 
@@ -208,7 +208,7 @@ class GeminiCharacterModel(CostModel):
         return "google"
 
     def calculate(self, usage: UsageData) -> float:
-        """Calculate Gemini cost from character counts"""
+        """Calculate Gemini cost from character counts (per billion characters)"""
         if not self.validate(usage):
             raise ValueError(f"Invalid usage data for Gemini: {usage}")
 
@@ -216,9 +216,9 @@ class GeminiCharacterModel(CostModel):
         if not pricing:
             raise ValueError(f"Unknown Gemini model: {usage.model}")
 
-        # Gemini charges per character, not per token
-        input_cost = ((usage.input_characters or 0) * pricing["input"])
-        output_cost = ((usage.output_characters or 0) * pricing["output"])
+        # Gemini charges per character, pricing table is per billion characters
+        input_cost = ((usage.input_characters or 0) * pricing["input"]) / 1_000_000_000
+        output_cost = ((usage.output_characters or 0) * pricing["output"]) / 1_000_000_000
         return input_cost + output_cost
 
     def validate(self, usage: UsageData) -> bool:

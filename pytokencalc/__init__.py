@@ -33,9 +33,8 @@ Repository: https://github.com/Mullassery/PyTokenCalc
 __version__ = "0.7.0"
 __author__ = "Georgi Mammen Mullassery"
 
-# Core cost calculation classes (v0.5 and v0.6)
-from .cost_calculator import CostCalculator, CostCalculatorV6
-from .cost_model import Cost, ProviderType
+# Core cost calculation classes (v0.6+)
+from .cost_calculator import CostCalculatorV6
 from .cost_models import (
     UsageData,
     CostModel,
@@ -76,14 +75,7 @@ from ._budget_enforcement import (
 )
 
 __all__ = [
-    # Core v0.5 (backwards compatible)
-    "CostCalculator",
-    "Cost",
-    "ProviderType",
-    "PricingManager",
-    "DatabaseManager",
-    "CostDatabase",
-    # v0.6+ multi-provider cost models
+    # Core v0.6+ multi-provider cost models
     "CostCalculatorV6",
     "UsageData",
     "CostModel",
@@ -94,6 +86,10 @@ __all__ = [
     "GroqSpeedTieredModel",
     "DeepInfraTokenModel",
     "TogetherAITokenModel",
+    # Persistence
+    "PricingManager",
+    "DatabaseManager",
+    "CostDatabase",
     # v0.7+ token counting (if available)
     "TokenCounter",
     "TokenCountResult",

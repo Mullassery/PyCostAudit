@@ -1,36 +1,37 @@
-"""Specific exception types for better error handling."""
+"""Specific exception types for PyTokenCalc."""
 
-class CostAuditError(Exception):
+
+class PyTokenCalcError(Exception):
     """Base exception for PyTokenCalc."""
     pass
 
 
-class DatabaseError(CostAuditError):
+class DatabaseError(PyTokenCalcError):
     """Database operation failed."""
     pass
 
 
-class ConfigurationError(CostAuditError):
+class ConfigurationError(PyTokenCalcError):
     """Configuration is invalid or missing."""
     pass
 
 
-class ValidationError(CostAuditError):
+class ValidationError(PyTokenCalcError):
     """Input validation failed."""
     pass
 
 
-class AuthenticationError(CostAuditError):
+class AuthenticationError(PyTokenCalcError):
     """Authentication/credentials failed."""
     pass
 
 
-class APIError(CostAuditError):
+class APIError(PyTokenCalcError):
     """API call failed."""
     pass
 
 
-class ProcessingError(CostAuditError):
+class ProcessingError(PyTokenCalcError):
     """Data processing error."""
     pass
 
@@ -40,16 +41,6 @@ class CalculationError(ProcessingError):
     pass
 
 
-class ForecastingError(ProcessingError):
-    """Forecasting calculation failed."""
-    pass
-
-
-class ExportError(CostAuditError):
+class ExportError(PyTokenCalcError):
     """Export operation failed."""
-    pass
-
-
-class AlertError(CostAuditError):
-    """Alert delivery failed."""
     pass
