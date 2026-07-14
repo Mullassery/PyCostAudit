@@ -1,349 +1,449 @@
-# Adding New Providers to PyTokenCalc v0.6
+# Adding New Token Counter Providers to PyTokenCalc v0.7
 
-PyTokenCalc v0.6 is designed to support **any LLM provider with any token counting method**. New providers can be added without modifying core code.
+PyTokenCalc v0.7 is designed to support **any LLM provider's tokenizer**. New token counting methods can be added without modifying core code.
 
-## Architecture: Pluggable Provider Models
+---
 
-Each provider has its own `CostModel` subclass that implements its specific token counting logic:
+## Architecture: Pluggable Token Counters
+
+Each provider has its own `TokenCounter` subclass that implements its specific token counting logic:
 
 ```
-CostModel (abstract base)
-├─ ClaudeTokenModel (simple: input/output)
-├─ GPT4oTokenModel (dual: full + mini tokens)
-├─ GeminiCharacterModel (character-based)
-├─ GroqSpeedTieredModel (speed-aware)
-├─ DeepInfraTokenModel (token-based wrapper)
-├─ TogetherAITokenModel (token-based wrapper)
-└─ [Your New Provider] (register dynamically)
+TokenCounter (abstract base)
+├─ OpenAITokenCounter (tiktoken - local)
+├─ HuggingFaceTokenCounter (transformers - local)
+├─ ClaudeTokenCounter (API - cached)
+├─ GeminiTokenCounter (API - cached)
+├─ GroqTokenCounter (API - cached)
+├─ DeepInfraTokenCounter (API - cached)
+└─ [Your New Provider] (implement & register)
 ```
 
-## Step 1: Create Your Provider Model
+---
 
-Subclass `CostModel` with your provider's unique token counting logic:
+## Step 1: Create Your Token Counter
+
+Subclass `TokenCounter` with your provider's token counting logic:
 
 ```python
-from pytokencalc import CostModel, UsageData
+from pytokencalc.tokenizers import TokenCounter, TokenCountResult
 
-class MyCoolProviderModel(CostModel):
-    """My Cool Provider - token counting method XYZ"""
-
-    # Pricing data (fetch from provider API or hardcode)
-    PRICING = {
-        "model-a": {"input": 0.01, "output": 0.02},
-        "model-b": {"input": 0.05, "output": 0.10},
-    }
+class MyProviderTokenCounter(TokenCounter):
+    """Token counter for My Cool Provider"""
 
     @property
     def provider_name(self) -> str:
-        """Must match lowercase provider string in UsageData"""
-        return "mycoolprovider"
+        """Unique provider identifier"""
+        return "myprovider"
 
-    def calculate(self, usage: UsageData) -> float:
-        """Implement your provider's unique cost calculation"""
-        if not self.validate(usage):
-            raise ValueError(f"Invalid usage for {self.provider_name}")
+    def supports_model(self, model: str) -> bool:
+        """Check if this counter handles the model"""
+        return "myprovider" in model.lower() or model.startswith("mp-")
 
-        pricing = self.PRICING.get(usage.model)
-        if not pricing:
-            raise ValueError(f"Unknown model: {usage.model}")
+    def count(self, text: str, model: str) -> TokenCountResult:
+        """Count tokens in text for the given model"""
+        import time
+        start = time.time()
+        
+        # Your token counting implementation
+        # This could be:
+        # - Local tokenizer (fast, <10ms)
+        # - API call (cached, 200ms first time then instant)
+        # - Formula-based estimation
+        
+        tokens = self._count_tokens(text, model)
+        latency_ms = (time.time() - start) * 1000
+        
+        return TokenCountResult(
+            input_tokens=tokens,
+            source="local",  # or "api", or "formula"
+            latency_ms=latency_ms,
+            cached=False  # Set to True if result came from cache
+        )
 
-        # Your token counting logic (replace with actual method)
-        input_cost = (usage.input_tokens * pricing["input"]) / 1_000_000
-        output_cost = (usage.output_tokens * pricing["output"]) / 1_000_000
-        return input_cost + output_cost
+    def _count_tokens(self, text: str, model: str) -> int:
+        """Implement your token counting logic"""
+        # Example: Use a local library
+        # from my_tokenizer import count_tokens
+        # return count_tokens(text, model)
+        
+        # Or: Call provider API (will be cached by registry)
+        # import requests
+        # response = requests.post(f"https://api.myprovider.com/tokenize",
+        #                         json={"text": text, "model": model})
+        # return response.json()["token_count"]
+        
+        # Example: Simple approximation
+        return len(text.split()) * 1.3
+```
 
-    def validate(self, usage: UsageData) -> bool:
-        """Validate that usage has required fields for your provider"""
-        return (
-            usage.provider == self.provider_name
-            and usage.input_tokens >= 0
-            and usage.output_tokens >= 0
-            and usage.model in self.PRICING
+---
+
+## Step 2: Handle Model Matching
+
+The `supports_model()` method is critical for auto-routing:
+
+```python
+def supports_model(self, model: str) -> bool:
+    """Return True if this counter can handle the model"""
+    # Option 1: Prefix matching
+    if model.startswith("mp-"):
+        return True
+    
+    # Option 2: Name pattern matching
+    if "myprovider" in model.lower():
+        return True
+    
+    # Option 3: Explicit model list
+    return model in ["mp-large", "mp-medium", "mp-small"]
+```
+
+---
+
+## Step 3: Register Your Counter
+
+### Option A: Runtime Registration (No Core Changes)
+
+```python
+from pytokencalc.tokenizers import TokenCounterRegistry
+from my_module import MyProviderTokenCounter
+
+# Create registry
+registry = TokenCounterRegistry()
+
+# Register your counter
+registry.register(MyProviderTokenCounter())
+
+# Use it immediately
+result = registry.count_tokens("myprovider-model", "Your text here")
+print(f"Tokens: {result.input_tokens}")
+```
+
+### Option B: Contribute to PyTokenCalc Core
+
+1. Add your counter to `pytokencalc/tokenizers/myprovider_counter.py`
+2. Register in `pytokencalc/tokenizers/registry.py`
+3. Add import to `pytokencalc/tokenizers/__init__.py`
+4. Write tests in `tests/`
+5. Submit PR
+
+---
+
+## Step 4: Implement Caching (If Using APIs)
+
+If your token counter calls an API, the registry automatically caches results:
+
+```python
+class MyProviderTokenCounter(TokenCounter):
+    """API-based token counter (results are cached automatically)"""
+
+    @property
+    def provider_name(self) -> str:
+        return "myprovider"
+
+    def supports_model(self, model: str) -> bool:
+        return model.startswith("mp-")
+
+    def count(self, text: str, model: str) -> TokenCountResult:
+        import time
+        import requests
+        
+        start = time.time()
+        
+        # Call provider API for token count
+        response = requests.post(
+            "https://api.myprovider.com/tokenize",
+            json={"text": text, "model": model}
+        )
+        
+        tokens = response.json()["token_count"]
+        latency_ms = (time.time() - start) * 1000
+        
+        # Return with source="api"
+        # Registry automatically caches this result
+        return TokenCountResult(
+            input_tokens=tokens,
+            source="api",
+            latency_ms=latency_ms,
+            cached=False  # First call is never cached
         )
 ```
 
-## Step 2: Register Your Provider
+When the same `(model, text)` pair is counted again, the cache returns instantly without calling the API.
 
-### Option A: Runtime Registration (No Code Change)
+---
 
-```python
-from pytokencalc import CostCalculatorV6, CostModelRegistry
-from my_module import MyCoolProviderModel
-
-# Create calculator
-calc = CostCalculatorV6()
-
-# Register your model
-model = MyCoolProviderModel()
-calc.model_registry.register_model("mycoolprovider", model)
-
-# Use it immediately
-usage = UsageData(
-    provider="mycoolprovider",
-    model="model-a",
-    input_tokens=1_000_000,
-    output_tokens=500_000
-)
-cost = calc.calculate(usage)
-```
-
-### Option B: Contribute to PyTokenCalc (Add to Core)
-
-1. Add your provider to `pytokencalc/cost_models.py`
-2. Update `CostModelRegistry.__init__()` to include your model
-3. Update `__init__.py` to export your model class
-4. Submit PR
-
-## Step 3: Handle Provider-Specific Token Fields
-
-If your provider has unique token counting (like GPT-4o or Gemini), extend `UsageData`:
+## Step 5: Write Tests
 
 ```python
-@dataclass
-class UsageData:
-    # Standard fields (all providers)
-    provider: str
-    model: str
-    input_tokens: int
-    output_tokens: int
+# In tests/test_my_provider_counter.py
+import pytest
+from pytokencalc.tokenizers import TokenCounterRegistry
+from my_module import MyProviderTokenCounter
 
-    # Your provider's special fields (already supported)
-    your_special_field: Optional[str] = None
-    your_token_variant: Optional[int] = None
-    # ...
+def test_my_provider_basic():
+    counter = MyProviderTokenCounter()
+    text = "Hello world from My Provider"
+    result = counter.count(text, "myprovider-model")
+    
+    assert result.input_tokens > 0
+    assert result.source in ["local", "api", "formula"]
+    assert result.latency_ms > 0
+
+def test_auto_routing():
+    registry = TokenCounterRegistry()
+    registry.register(MyProviderTokenCounter())
+    
+    # Should auto-detect our counter
+    result = registry.count_tokens("myprovider-model", "Test text")
+    assert result.input_tokens > 0
+
+def test_caching():
+    registry = TokenCounterRegistry()
+    registry.register(MyProviderTokenCounter())
+    
+    text = "This should be cached"
+    model = "myprovider-model"
+    
+    # First call: not cached
+    result1 = registry.count_tokens(model, text)
+    assert not result1.cached
+    
+    # Second call: should be cached
+    result2 = registry.count_tokens(model, text)
+    assert result2.cached
+    assert result1.input_tokens == result2.input_tokens
 ```
+
+---
 
 ## Real-World Examples
 
-### Example 1: Simple Token-Based Provider
+### Example 1: Local Tokenizer (Fast, No API Calls)
 
-**Mistral API**: Simple input/output token rates
+**Mistral using HuggingFace tokenizer:**
 
 ```python
-class MistralTokenModel(CostModel):
-    PRICING = {
-        "mistral-large": {"input": 0.008, "output": 0.024},
-        "mistral-small": {"input": 0.0007, "output": 0.0021},
-    }
+from pytokencalc.tokenizers import TokenCounter, TokenCountResult
+from transformers import AutoTokenizer
+
+class MistralTokenCounter(TokenCounter):
+    def __init__(self):
+        self.tokenizer = AutoTokenizer.from_pretrained("mistralai/Mistral-7B")
 
     @property
     def provider_name(self) -> str:
         return "mistral"
 
-    def calculate(self, usage: UsageData) -> float:
-        pricing = self.PRICING[usage.model]
-        return (
-            (usage.input_tokens * pricing["input"]) +
-            (usage.output_tokens * pricing["output"])
-        ) / 1_000_000
+    def supports_model(self, model: str) -> bool:
+        return "mistral" in model.lower()
 
-    def validate(self, usage: UsageData) -> bool:
-        return usage.provider == "mistral" and usage.model in self.PRICING
-```
-
-### Example 2: Custom Token Counting
-
-**Llama Quantization-Aware Model**: Token count varies by quantization
-
-```python
-class LlamaQuantizationModel(CostModel):
-    PRICING = {
-        "llama-70b": {
-            "base_rate": 0.50,  # per 1M tokens
-            "quantization": {
-                "fp32": 1.0,      # Full precision
-                "fp16": 0.75,     # Half precision
-                "int8": 0.50,     # Quantized
-                "int4": 0.30,     # Heavily quantized
-            }
-        }
-    }
-
-    @property
-    def provider_name(self) -> str:
-        return "quantized_inference"
-
-    def calculate(self, usage: UsageData) -> float:
-        model_config = self.PRICING[usage.model]
-        base_rate = model_config["base_rate"]
+    def count(self, text: str, model: str) -> TokenCountResult:
+        import time
+        start = time.time()
         
-        # Apply quantization multiplier
-        quantization = usage.quantization_level or "fp32"
-        multiplier = model_config["quantization"].get(quantization, 1.0)
+        tokens = len(self.tokenizer.encode(text))
+        latency_ms = (time.time() - start) * 1000
         
-        effective_rate = base_rate * multiplier
-        return (
-            (usage.input_tokens * effective_rate) +
-            (usage.output_tokens * effective_rate)
-        ) / 1_000_000
-
-    def validate(self, usage: UsageData) -> bool:
-        return (
-            usage.provider == "quantized_inference"
-            and usage.model in self.PRICING
+        return TokenCountResult(
+            input_tokens=tokens,
+            source="local",
+            latency_ms=latency_ms,
+            cached=False
         )
 ```
 
-### Example 3: Batch-Based Pricing
+### Example 2: API-Based Token Counter (Accurate, Cached)
 
-**DeepSeek Batch Optimizer**: Costs vary by batch size
-
-```python
-class DeepSeekBatchModel(CostModel):
-    PRICING = {
-        "deepseek-v3": {
-            "per_token": 0.014,
-            "batch_multipliers": {
-                1: 1.0,          # Single request
-                "1-10": 0.95,    # Small batch
-                "11-100": 0.85,  # Medium batch
-                "100+": 0.70,    # Large batch
-            }
-        }
-    }
-
-    @property
-    def provider_name(self) -> str:
-        return "deepseek"
-
-    def calculate(self, usage: UsageData) -> float:
-        pricing = self.PRICING[usage.model]
-        base_rate = pricing["per_token"]
-        
-        # Apply batch discount
-        batch_size = usage.batch_size or 1
-        multiplier = self._get_batch_multiplier(batch_size)
-        
-        effective_rate = base_rate * multiplier
-        return (
-            (usage.input_tokens * effective_rate) +
-            (usage.output_tokens * effective_rate)
-        ) / 1_000_000
-
-    def _get_batch_multiplier(self, batch_size: int) -> float:
-        multipliers = self.PRICING["deepseek-v3"]["batch_multipliers"]
-        if batch_size == 1:
-            return multipliers[1]
-        elif batch_size <= 10:
-            return multipliers["1-10"]
-        elif batch_size <= 100:
-            return multipliers["11-100"]
-        else:
-            return multipliers["100+"]
-
-    def validate(self, usage: UsageData) -> bool:
-        return (
-            usage.provider == "deepseek"
-            and usage.model in self.PRICING
-        )
-```
-
-## Pricing Data Sources
-
-Keep your pricing current by fetching from provider APIs:
+**Claude token counter using Anthropic API:**
 
 ```python
-import requests
+from pytokencalc.tokenizers import TokenCounter, TokenCountResult
+import anthropic
 
-class DynamicPricingModel(CostModel):
+class ClaudeTokenCounter(TokenCounter):
     def __init__(self):
-        self.pricing = self._fetch_from_provider()
-        self.last_update = datetime.now()
+        self.client = anthropic.Anthropic()
 
-    def _fetch_from_provider(self) -> Dict:
-        """Fetch live pricing from provider API"""
-        response = requests.get("https://api.provider.com/pricing")
-        return response.json()
+    @property
+    def provider_name(self) -> str:
+        return "anthropic"
 
-    def calculate(self, usage: UsageData) -> float:
-        # Use self.pricing which is dynamically updated
-        # ...
+    def supports_model(self, model: str) -> bool:
+        return "claude" in model.lower()
+
+    def count(self, text: str, model: str) -> TokenCountResult:
+        import time
+        start = time.time()
+        
+        # Call Anthropic API for accurate token count
+        # (Will be cached by TokenCounterRegistry)
+        response = self.client.messages.count_tokens(
+            model=model,
+            messages=[{"role": "user", "content": text}]
+        )
+        
+        tokens = response.input_tokens
+        latency_ms = (time.time() - start) * 1000
+        
+        return TokenCountResult(
+            input_tokens=tokens,
+            source="api",
+            latency_ms=latency_ms,
+            cached=False
+        )
 ```
 
-## Testing Your Provider
+### Example 3: Hybrid Counter (Local + API)
+
+**Smart routing: local when available, API when needed:**
 
 ```python
-import pytest
-from pytokencalc import UsageData, CostCalculatorV6
+from pytokencalc.tokenizers import TokenCounter, TokenCountResult
 
-def test_my_provider():
-    calc = CostCalculatorV6()
-    
-    usage = UsageData(
-        provider="mycoolprovider",
-        model="model-a",
-        input_tokens=1_000_000,
-        output_tokens=500_000
-    )
-    
-    cost = calc.calculate(usage)
-    
-    # Assert expected cost
-    expected = (1_000_000 * 0.01 + 500_000 * 0.02) / 1_000_000
-    assert abs(cost - expected) < 0.001
+class HybridTokenCounter(TokenCounter):
+    def __init__(self):
+        # Try to load local tokenizer
+        try:
+            from transformers import AutoTokenizer
+            self.tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b")
+            self.has_local = True
+        except:
+            self.has_local = False
+            self.api_client = self._setup_api()
+
+    @property
+    def provider_name(self) -> str:
+        return "hybrid"
+
+    def supports_model(self, model: str) -> bool:
+        return model.startswith("llama-") or model.startswith("hybrid-")
+
+    def count(self, text: str, model: str) -> TokenCountResult:
+        import time
+        start = time.time()
+        
+        # Use local tokenizer if available (5ms)
+        if self.has_local:
+            tokens = len(self.tokenizer.encode(text))
+            source = "local"
+        else:
+            # Fall back to API (200ms, but cached)
+            tokens = self._call_api(text, model)
+            source = "api"
+        
+        latency_ms = (time.time() - start) * 1000
+        
+        return TokenCountResult(
+            input_tokens=tokens,
+            source=source,
+            latency_ms=latency_ms,
+            cached=False
+        )
+
+    def _call_api(self, text: str, model: str) -> int:
+        # Your API call logic
+        pass
+
+    def _setup_api(self):
+        # Initialize API client
+        pass
 ```
-
-## Multi-Provider Cost Comparison
-
-Once registered, your provider is automatically available in cost comparisons:
-
-```python
-# Register your provider
-registry = CostModelRegistry()
-registry.register_model("mycoolprovider", MyCoolProviderModel())
-
-# Compare across all providers
-usage = UsageData(provider="mycoolprovider", ...)
-calc = CostCalculatorV6()
-calc.calculate(usage)
-
-# See breakdown across all providers
-breakdown = calc.cost_by_provider()
-# {"anthropic": X, "openai": Y, "mycoolprovider": Z}
-```
-
-## Diversity of Token Models Supported
-
-PyTokenCalc v0.6 handles:
-
-| Token Model | Examples | Implementation |
-|---|---|---|
-| **Simple tokens** | Claude, Mistral | Input/output rate × tokens ÷ 1M |
-| **Dual tokens** | GPT-4o (full+mini) | Multiple token streams with different rates |
-| **Character-based** | Gemini | Characters × rate (no token count) |
-| **Speed-tiered** | Groq | Base rate × speed multiplier |
-| **Batch-aware** | DeepSeek | Rate × batch size discount |
-| **Quantization-aware** | Llama on various providers | Rate × quantization multiplier |
-| **Region-aware** | Bedrock | Rate × regional multiplier |
-| **Time-based** | Future providers | Rate × time-of-day multiplier |
-| **Usage-based** | Future providers | Dynamic rate based on usage patterns |
-| **Custom logic** | Any provider | Implement your own calculation |
-
-## Contributing
-
-1. **Create your provider model** in `pytokencalc/cost_models.py`
-2. **Add tests** in `tests/test_cost_models_v6.py`
-3. **Update registry** in `CostModelRegistry.__init__()`
-4. **Update exports** in `__init__.py`
-5. **Submit PR** with real pricing examples
-
-## FAQ
-
-**Q: What if a new provider launches tomorrow?**
-A: Create a `CostModel` subclass and register it. No core changes needed.
-
-**Q: What if token counting changes mid-month?**
-A: Override `calculate()` to handle multiple versions or dynamic rates.
-
-**Q: Can I use my provider's real-time API for pricing?**
-A: Yes! Override `PRICING` with dynamic fetching in `__init__()`.
-
-**Q: What if my provider has 10 different pricing tiers?**
-A: Extend `UsageData` with tier field, use it in `calculate()`.
-
-**Q: Do all fields in UsageData apply to my provider?**
-A: No. Validate what you need in `validate()`. Ignore others.
 
 ---
 
-**PyTokenCalc is built for flexibility.** It handles 20+ current providers and is ready for 100+ future ones. Any token counting method. Any pricing model. Fully pluggable.
+## Important: Avoid Common Mistakes
+
+❌ **Don't**: Modify `TokenCountResult` after creation
+```python
+result = TokenCountResult(input_tokens=100, source="local", latency_ms=5)
+result.cached = True  # DON'T DO THIS
+```
+
+✅ **Do**: Create result with correct values
+```python
+result = TokenCountResult(
+    input_tokens=100,
+    source="cache" if from_cache else "local",
+    latency_ms=0.3 if from_cache else 5,
+    cached=from_cache
+)
+```
+
+❌ **Don't**: Block in `count()` with retries or loops
+```python
+def count(self, text: str, model: str):
+    for i in range(3):  # DON'T RETRY HERE
+        try:
+            return self._count_with_retries()
+        except:
+            pass
+```
+
+✅ **Do**: Let the caller handle retries
+```python
+def count(self, text: str, model: str):
+    return self._count_tokens(text, model)  # Fail fast
+```
+
+---
+
+## Testing Your Provider
+
+```bash
+# Test your counter in isolation
+pytest tests/test_my_provider.py -v
+
+# Test with registry
+pytest tests/ -k "my_provider" -v
+
+# Test caching behavior
+pytest tests/ -k "cache" -v
+```
+
+---
+
+## Contributing
+
+1. **Create** `pytokencalc/tokenizers/myprovider_counter.py`
+2. **Implement** `TokenCounter` subclass
+3. **Register** in `pytokencalc/tokenizers/registry.py`
+4. **Export** in `pytokencalc/tokenizers/__init__.py`
+5. **Test** in `tests/test_myprovider_counter.py` or `tests/test_cost_models_v6.py`
+6. **Submit PR** with:
+   - Working example
+   - Test coverage
+   - Latency benchmarks
+   - Real usage examples
+
+---
+
+## FAQ
+
+**Q: What's the difference between token counting and cost calculation?**
+A: Token counting is determining how many tokens are in text. Cost calculation is converting tokens to dollars. PyTokenCalc only does token counting. For cost calculation, use [OpenAnchor](https://github.com/Mullassery/openanchor).
+
+**Q: Can I use an API-based tokenizer?**
+A: Yes! The registry automatically caches API results, achieving 70-80% API call reduction.
+
+**Q: What if my provider's tokenizer isn't public?**
+A: Use their API. The registry caches results so 99% of calls return instantly.
+
+**Q: How do I handle multiple models from the same provider?**
+A: Use `supports_model()` to handle pattern matching:
+```python
+def supports_model(self, model: str) -> bool:
+    return any(m in model for m in ["mp-", "myprovider-", "mp:"])
+```
+
+**Q: What if token counting changes for my provider?**
+A: Update your `count()` implementation. Existing cached results won't be affected.
+
+**Q: Can I use a probabilistic/approximate tokenizer?**
+A: Yes, but set `source="formula"` to indicate it's an estimate, not exact.
+
+---
+
+**PyTokenCalc is built for flexibility.** It handles 20+ current providers and is ready for 100+ future ones. Any token counting method. Any provider. Fully pluggable.
+
+For cost tracking and optimization, see [OpenAnchor](https://github.com/Mullassery/openanchor).

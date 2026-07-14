@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "pytokencalc"
 version = "0.7.0"
-description = "Multi-provider LLM token counter & cost calculator. Unified token counting and cost calculation across 20+ cloud providers and 10+ open-source APIs."
+description = "Unified token counting across 20+ cloud providers and 10+ open-source APIs. Local tokenizers for OpenAI/Llama, intelligent caching, 99%+ accuracy."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
@@ -14,7 +14,7 @@ maintainers = [{ name = "Georgi Mammen Mullassery", email = "mullassery@gmail.co
 keywords = [
     "llm",
     "token-counting",
-    "cost-calculation",
+    "tokenizer",
     "multi-provider",
     "gpt",
     "claude",
@@ -24,14 +24,12 @@ keywords = [
     "groq",
     "deepinfra",
     "token-counter",
-    "tokenizer",
-    "ai-cost-management",
-    "openanchor"
+    "transformer",
+    "tiktoken"
 ]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
     "Operating System :: OS Independent",
@@ -40,10 +38,8 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    "Topic :: Office/Business :: Financial",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Topic :: Software Development :: Libraries :: Python Modules",
-    "Topic :: System :: Monitoring",
     "Topic :: Utilities",
 ]
 
