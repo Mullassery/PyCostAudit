@@ -318,15 +318,33 @@ for model in ["gpt-4o", "claude-3-5-sonnet", "gemini-2-flash"]:
 
 ---
 
+## Database & Storage
+
+PyTokenCalc maintains a database to store token counts and enable reconciliation across API calls:
+
+**PyTokenCalc Standalone:** Manages its own database for token accounting. OpenAnchor is optional.
+
+**PyTokenCalc + OpenAnchor:** When you install OpenAnchor, it automatically includes PyTokenCalc. Both use the same database:
+- PyTokenCalc stores: Raw token counts (token_events)
+- OpenAnchor stores: Analysis & recommendations (attribution, patterns, etc)
+- Single instance: Both projects share one database
+- OpenAnchor does NOT create its own database—it enriches PyTokenCalc's database with intelligence
+
+**Important:** OpenAnchor requires PyTokenCalc to be installed. You cannot use OpenAnchor without PyTokenCalc. However, you can use PyTokenCalc alone without OpenAnchor.
+
+See [ARCHITECTURE_BOUNDARIES.md](../openanchor/ARCHITECTURE_BOUNDARIES.md) in the OpenAnchor repo for full database architecture details.
+
+---
+
 ## What's NOT Included
 
 PyTokenCalc counts tokens. That's it.
 
-For advanced use cases like model optimization or analytics, you can build on PyTokenCalc's token counting API:
-- 🔍 Analyze token usage patterns
-- 📊 Track API usage over time  
-- 🎯 Compare model efficiency
-- 📈 Plan capacity and resources
+For advanced use cases like token intelligence, optimization, or analytics, use OpenAnchor (which bundles PyTokenCalc) or build on PyTokenCalc's token counting API:
+- 🔍 Token intelligence & attribution (use OpenAnchor)
+- 📊 Pattern detection & anomaly alerts (use OpenAnchor)
+- 🎯 Optimization recommendations (use OpenAnchor)
+- 📈 Plan capacity and model comparison (build on PyTokenCalc)
 
 ---
 

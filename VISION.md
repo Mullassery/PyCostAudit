@@ -176,29 +176,50 @@ Let users extend PyTokenCalc rather than bloating the core:
 
 ## Relationship: PyTokenCalc ↔ OpenAnchor
 
+### Deployment Models
+
+**PyTokenCalc Standalone (Token Counting Only):**
 ```
-┌─────────────────────────────────────────────┐
-│         OpenAnchor                          │
-│  Intelligence Layer                         │
-│  • Attribution (who used tokens)            │
-│  • Pattern detection (what changed)         │
-│  • Trends (is it growing?)                  │
-│  • Recommendations (what to do)             │
-│  • Observability (Grafana, OTEL, etc)       │
-└────────────────────▲─────────────────────────┘
-                     │
-             Token Count Events
-                     │
-┌────────────────────┴─────────────────────────┐
-│         PyTokenCalc                         │
-│  Accounting Layer                           │
-│  • Unified token counting API               │
-│  • 20+ provider support                     │
-│  • Local + cached API tokenizers            │
-│  • Exact counts + breakdowns                │
-│  • Modality awareness (text, image, etc)    │
-└─────────────────────────────────────────────┘
+Your Application
+    ↓
+PyTokenCalc (counts tokens via API or local cache)
+    ├─ Provides accurate token counts
+    ├─ Maintains database for token reconciliation
+    └─ Handles provider switching
 ```
+
+**PyTokenCalc + OpenAnchor (Integrated):**
+```
+Your Application
+    ↓
+OpenAnchor Middleware (analyzes and enriches)
+    ├─ Calls PyTokenCalc for accurate counts
+    ├─ Writes enrichments to PyTokenCalc's database
+    └─ Provides intelligence & recommendations
+    ↓
+PyTokenCalc Database (single shared instance)
+├─ token_events (PyTokenCalc: raw counts)
+├─ token_attribution (OpenAnchor: 6D breakdown)
+├─ pattern_detections (OpenAnchor: anomalies, trends)
+├─ recommendations (OpenAnchor: optimizations)
+└─ ... (OpenAnchor enrichment tables)
+```
+
+### Database Responsibility
+
+**PyTokenCalc owns and maintains the database:**
+- Creates and manages all storage infrastructure
+- Stores token events (the source of truth)
+- Handles reconciliation via repeated API calls if needed
+- Works standalone (OpenAnchor is OPTIONAL)
+- Can optionally provide database connection to OpenAnchor
+
+**OpenAnchor enriches PyTokenCalc's database:**
+- Reads from `token_events` (PyTokenCalc's table)
+- Writes analysis tables (attribution, patterns, recommendations)
+- Does NOT create or manage the database
+- REQUIRES PyTokenCalc to be installed
+- Cannot work without PyTokenCalc
 
 ### What PyTokenCalc Provides to OpenAnchor
 PyTokenCalc is the **source of truth** for all token counts:
@@ -207,6 +228,7 @@ PyTokenCalc is the **source of truth** for all token counts:
 - **By modality breakdown** (text tokens, image tokens, etc - automatic)
 - Model and provider metadata
 - Timestamp and context (user_id, session_id, etc)
+- **Database access** (when OpenAnchor needs to enrich data)
 
 **CRITICAL:** PyTokenCalc provides TOTALS ONLY.  
 OpenAnchor breaks down those totals by component (system prompt, user input, context, etc).
