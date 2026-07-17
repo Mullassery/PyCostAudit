@@ -231,14 +231,121 @@ claude_tokens = registry.count_tokens("claude-3-5-sonnet", text).input_tokens
 
 ## Supported Providers
 
-### Cloud LLM APIs (20+)
-Anthropic Claude, OpenAI GPT, Google Gemini, Mistral, DeepSeek, Meta Llama (via Bedrock), Cohere, and more.
+### 🌐 Cloud LLM APIs (20+)
+**Explicit Support:**
+- ✅ OpenAI (GPT-4, GPT-3.5-turbo)
+- ✅ Anthropic (Claude 3 + pattern: `claude-*`)
+- ✅ Google (Gemini, pattern: `gemini-*`)
+- ✅ Cohere (Command, pattern: `command-*`)
+- ✅ Azure OpenAI (same as OpenAI)
+- Plus: RunPod, Together AI, Replicate, HuggingFace Inference, and more
 
-### Open-Source APIs (10+)
-Groq, DeepInfra, Together.ai, Fireworks, Replicate, and more.
+**Dynamic Support:**
+Any cloud provider with an API endpoint (RunPod, Llama Labs, custom backends)
 
-### Local Models
-Any HuggingFace model with a tokenizer.
+### 💻 Local Inference Engines (7+)
+**Auto-Detected:**
+- LM Studio (localhost:1234)
+- LocalAI (localhost:8080)
+- Llama.cpp (localhost:8000)
+- GPT4All (localhost:4891)
+- Text Generation WebUI (localhost:5000)
+- Jan (localhost:1337)
+- Vllm (localhost:8000)
+
+### 🦙 Open-Source Models
+**Built-in Ollama Support:**
+- Any model you pull into Ollama
+- Automatic model discovery
+- No model list required
+
+**HuggingFace Direct:**
+- 14+ known models supported
+- Any HuggingFace model works
+
+### 🚀 Bring Your Own Model (BYOM)
+**Completely Custom:**
+- Your fine-tuned models
+- Your proprietary models
+- Your locally-trained models
+- Any model running on any GPU/CPU
+
+Just expose an API and register it with PyTokenCalc.
+
+### 🔍 Model Discovery
+Don't know which provider? PyTokenCalc discovers it:
+```python
+from pytokencalc.model_discovery import ModelDiscovery
+
+# Automatic discovery
+result = ModelDiscovery.lookup_model("llama-2-7b")
+# Returns: ["ollama", "huggingface", "runpod", "together-ai"]
+
+# Get setup instructions
+report = ModelDiscovery.get_discovery_report("mistral-7b")
+# Prints: Install, setup steps for each provider
+```
+
+---
+
+## Advanced Features
+
+### Custom Provider Registration
+Use any LLM provider, including proprietary or self-hosted:
+
+```python
+from pytokencalc.tokenizers.custom_provider_counter import (
+    CustomProviderCounter,
+    register_custom_provider,
+)
+
+# Register your RunPod endpoint
+runpod = CustomProviderCounter(
+    provider_name="runpod",
+    base_url="https://api.runpod.io/v2/YOUR_ID",
+    api_key="your-key"
+)
+runpod.register_models(["llama-2-7b", "mistral-7b"])
+register_custom_provider(runpod)
+
+# Now use it like any other provider
+registry.count_tokens("llama-2-7b", text, provider="runpod")
+```
+
+See [CUSTOM_PROVIDERS.md](CUSTOM_PROVIDERS.md) for 10+ examples.
+
+### Platform-Aware Token Counting
+⚠️ **Important:** Same model on different platforms may have different token counts
+
+```python
+# Same text, different platforms = different results
+result_local = registry.count_tokens("llama-2-7b", text, provider="ollama")
+result_cloud = registry.count_tokens("llama-2-7b", text, provider="runpod")
+
+print(result_local.platform)      # "ollama"
+print(result_cloud.platform)      # "runpod"
+print(result_local.timestamp)     # When it was counted
+```
+
+Results are kept separate by platform and timestamp. Never aggregate or mix.
+
+### Temporal Variation Tracking
+Cloud infrastructure changes over time. PyTokenCalc tracks this:
+
+```python
+# First session
+result1 = registry.count_tokens("gpt-4o", text)
+print(f"Tokens: {result1.input_tokens}, Latency: {result1.latency_ms}ms")
+# Output: Tokens: 100, Latency: 50ms
+
+# Later session (after infrastructure update)
+result2 = registry.count_tokens("gpt-4o", text)
+print(f"Tokens: {result2.input_tokens}, Latency: {result2.latency_ms}ms")
+# Output: Tokens: 101, Latency: 120ms (different!)
+
+# Both are tracked with timestamps
+print(result1.timestamp, result2.timestamp)  # Different times
+```
 
 ---
 
