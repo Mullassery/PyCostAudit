@@ -350,6 +350,183 @@ class TestCohereAccuracy:
         assert not counter.validate_model("claude-3-opus"), "Should reject non-Cohere models"
 
 
+class TestTemporalVariations:
+    """Verify PyTokenCalc tracks temporal variations in token counts
+
+    Cloud provider infrastructure changes:
+    - May change hosting region or hardware
+    - May update backend model/quantization
+    - Latency varies by time of day and load
+    - Token counts may shift between sessions
+
+    Same model at different times may yield:
+    - Different token counts
+    - Different latencies
+    - Different performance characteristics
+    """
+
+    def test_token_result_includes_timestamp(self):
+        """Verify TokenCountResult includes timestamp for tracking"""
+        from pytokencalc.tokenizers import TokenCountResult
+        from datetime import datetime
+
+        result = TokenCountResult(
+            input_tokens=100,
+            provider="openai",
+            model="gpt-4",
+            source="api"
+        )
+
+        # Should have timestamp
+        assert result.timestamp is not None, "Should have timestamp"
+        assert isinstance(result.timestamp, datetime), "Timestamp should be datetime"
+        assert result.timestamp.year >= 2026, "Timestamp should be recent"
+
+    def test_token_result_includes_session_id(self):
+        """Verify TokenCountResult can track session context"""
+        from pytokencalc.tokenizers import TokenCountResult
+
+        # Session 1
+        result1 = TokenCountResult(
+            input_tokens=100,
+            provider="openai",
+            model="gpt-4",
+            session_id="session-20260717-001"
+        )
+
+        # Session 2 (same model, potentially different backend)
+        result2 = TokenCountResult(
+            input_tokens=102,  # Slightly different
+            provider="openai",
+            model="gpt-4",
+            session_id="session-20260718-001"
+        )
+
+        # Can track changes across sessions
+        assert result1.session_id != result2.session_id, "Different sessions"
+        assert result1.timestamp != result2.timestamp, "Different times"
+
+    def test_latency_tracking_for_temporal_analysis(self):
+        """Verify latency is tracked for infrastructure monitoring"""
+        from pytokencalc.tokenizers import TokenCountResult
+
+        # Early in day (fast)
+        morning = TokenCountResult(
+            input_tokens=100,
+            latency_ms=50,
+            provider="gcp",
+            model="gemini-pro",
+            session_id="2026-07-18-morning"
+        )
+
+        # Peak time (slow due to load)
+        afternoon = TokenCountResult(
+            input_tokens=100,  # Same text
+            latency_ms=250,    # Much slower
+            provider="gcp",
+            model="gemini-pro",
+            session_id="2026-07-18-afternoon"
+        )
+
+        # Same model but vastly different latency
+        assert morning.model == afternoon.model
+        assert morning.input_tokens == afternoon.input_tokens
+        assert afternoon.latency_ms > morning.latency_ms, "Should show latency variation"
+
+    def test_temporal_token_count_variance(self):
+        """Document expected token count variance over time"""
+        from pytokencalc.tokenizers import TokenCountResult
+
+        text = "Hello world"
+
+        # Session 1: Initial count
+        session1_results = [
+            TokenCountResult(
+                input_tokens=2,
+                latency_ms=50,
+                provider="runpod",
+                model="llama-2-7b",
+                session_id="session-1"
+            ),
+            TokenCountResult(
+                input_tokens=2,
+                latency_ms=48,
+                provider="runpod",
+                model="llama-2-7b",
+                session_id="session-1"
+            ),
+        ]
+
+        # Session 2: After backend update (token count may change)
+        session2_results = [
+            TokenCountResult(
+                input_tokens=3,  # Backend updated, token pattern changed
+                latency_ms=85,   # Latency also changed
+                provider="runpod",
+                model="llama-2-7b",
+                session_id="session-2"
+            ),
+        ]
+
+        # Expected: counts vary over time due to backend changes
+        session1_avg = sum(r.input_tokens for r in session1_results) / len(session1_results)
+        session2_avg = sum(r.input_tokens for r in session2_results) / len(session2_results)
+
+        # Different sessions may have different characteristics
+        # This is EXPECTED, not an error
+        assert session1_avg != session2_avg, "Backend changes expected between sessions"
+
+    def test_provider_infrastructure_changes_latency(self):
+        """Document that latency varies with infrastructure changes"""
+        registry = TokenCounterRegistry()
+        text = TEST_SAMPLES["english_short"]["text"]
+
+        # Multiple calls to same provider
+        results = []
+        for i in range(3):
+            result = registry.count_tokens("gpt-4o", text)
+            results.append(result)
+
+            # Verify timestamp is set
+            assert result.timestamp is not None
+
+        # Latency may vary between calls
+        latencies = [r.latency_ms for r in results]
+
+        # First call often slower (cold cache/connection)
+        # Subsequent calls faster (warm)
+        # But can still vary due to system load
+
+        # All results are valid - don't assume consistency
+        for result in results:
+            assert result.input_tokens > 0, "Should have token count"
+            assert result.latency_ms >= 0, "Should have latency"
+
+    def test_temporal_monitoring_best_practices(self):
+        """Document best practices for tracking temporal changes"""
+        # DON'T do this:
+        # results = [r1, r2, r3]  # from different times
+        # avg_tokens = sum(r.input_tokens for r in results) / len(results)  # WRONG!
+
+        # DO this instead:
+        # Group by session
+        sessions = {
+            "session-1": [100, 101, 100],  # Consistent within session
+            "session-2": [103, 104, 103],  # Shifted between sessions (backend change)
+        }
+
+        # Analyze per-session
+        for session_id, tokens in sessions.items():
+            session_avg = sum(tokens) / len(tokens)
+            # Track session average separately
+
+        # This reveals backend changes between sessions
+        session1_avg = sum(sessions["session-1"]) / len(sessions["session-1"])
+        session2_avg = sum(sessions["session-2"]) / len(sessions["session-2"])
+
+        assert session1_avg != session2_avg, "Should detect session differences"
+
+
 class TestCustomProviderSupport:
     """Verify support for custom/unknown providers
 

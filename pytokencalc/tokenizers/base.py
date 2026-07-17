@@ -4,8 +4,9 @@ Each provider (OpenAI, Llama, Anthropic, etc.) has its own implementation.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
+from datetime import datetime
 
 
 @dataclass
@@ -44,6 +45,25 @@ class TokenCountResult:
     Example - WRONG:
       "llama2: avg 102 tokens" (mixes platforms!)
       "llama2: 105 tokens" (hides platform)
+
+    Temporal Variations (Session-to-Session Changes):
+    - Cloud providers may change infrastructure
+    - Latency varies by time of day, load, region
+    - Backend model updates can change token patterns
+    - Token counts may shift between sessions
+    - Same prompt at different times may yield different counts
+
+    Track Over Time:
+    - Use timestamp field to identify when count was made
+    - Use session_id to group related counts
+    - Don't assume consistency across time
+    - Monitor latency trends
+    - Alert if token counts diverge unexpectedly
+
+    Example of temporal variation:
+      Session 1 (July 17): "hello" = 2 tokens, 50ms
+      Session 2 (July 18): "hello" = 2 tokens, 120ms (infrastructure change)
+      Session 3 (July 19): "hello" = 3 tokens, 80ms (backend update)
     """
     input_tokens: int
     output_tokens: int = 0
@@ -51,13 +71,15 @@ class TokenCountResult:
     system_tokens: int = 0
     tool_tokens: int = 0
 
-    # Metadata: Platform & source tracking
+    # Metadata: Platform, source, and temporal tracking
     cached: bool = False  # True if from cache
     source: str = "local"  # "local", "api", "formula"
     latency_ms: float = 0.0
     provider: str = ""  # "openai", "anthropic", "ollama", "gcp", "azure", etc.
     model: str = ""  # Model ID/name
     platform: str = ""  # Platform variant (e.g., "ollama-local", "gcp-vertex", "azure-container")
+    timestamp: datetime = field(default_factory=datetime.utcnow)  # When the count was made
+    session_id: str = ""  # Session identifier (for tracking changes over time)
 
     @property
     def total_tokens(self) -> int:
