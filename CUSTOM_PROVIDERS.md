@@ -1,13 +1,26 @@
 # Custom Provider Registration Guide
 
-PyTokenCalc supports **any LLM provider** with an API endpoint, including:
+PyTokenCalc supports **any LLM** you're running, including:
+
+**Any Provider with API Endpoint:**
 - RunPod serverless endpoints
 - Llama Labs custom implementations  
 - Replicate API
 - Together AI
 - HuggingFace Inference API
-- Custom self-hosted solutions
 - Proprietary/private enterprise APIs
+
+**Local Models (No Provider):**
+- Custom trained models on your GPU/CPU
+- Downloaded HuggingFace models running locally
+- Fine-tuned models
+- Proprietary models you've built
+- Any open-source model you've downloaded and launched
+
+**Bring Your Own Model (BYOM):**
+- You run the inference server yourself
+- PyTokenCalc queries YOUR server for token counts
+- Works with any tokenization approach you use
 
 ## Quick Start
 
@@ -160,6 +173,96 @@ custom.register_models([
 
 register_custom_provider(custom)
 ```
+
+### Bring Your Own Model (BYOM)
+
+User downloads and runs a model locally on their GPU/CPU, then exposes it via an API.
+
+**Example: User's Custom Setup**
+```
+1. Download Llama-2 from HuggingFace
+   $ huggingface-cli download meta-llama/Llama-2-7b-hf
+
+2. Run inference server
+   $ python -m vllm.entrypoints.openai_api_server \
+       --model meta-llama/Llama-2-7b-hf \
+       --port 8000
+
+3. Register with PyTokenCalc
+```
+
+```python
+from pytokencalc.tokenizers.custom_provider_counter import (
+    CustomProviderCounter,
+    register_custom_provider,
+)
+
+# User's locally-running model
+my_model = CustomProviderCounter(
+    provider_name="my-local-llm",
+    base_url="http://localhost:8000",  # Your inference server
+    api_key=None,
+)
+
+# Register the model you're running
+my_model.register_models(["meta-llama/Llama-2-7b-hf"])
+
+register_custom_provider(my_model)
+
+# Now use it in your application
+from pytokencalc.tokenizers import TokenCounterRegistry
+registry = TokenCounterRegistry()
+result = registry.count_tokens("meta-llama/Llama-2-7b-hf", text, provider="my-local-llm")
+```
+
+**User's Inference Framework Options:**
+- **vLLM**: Fast inference engine for HuggingFace models
+- **llama.cpp**: C++ inference for Llama models (very fast)
+- **GPTQ**: Quantized inference
+- **DeepSpeed**: Microsoft's inference optimization
+- **Text Generation WebUI**: Gradio-based web interface
+- **SpeakLeash**: Local LLM control panel
+- **Ray Serve**: Scalable model serving
+- **FastAPI + Transformers**: Custom wrapper around HF models
+
+**Example: User runs fine-tuned model**
+```python
+# User trained their own model
+my_finetuned = CustomProviderCounter(
+    provider_name="my-finetuned-model",
+    base_url="http://localhost:9000",
+    verify_provider=False  # Skip verification, might not be running yet
+)
+
+my_finetuned.register_models(["my-company-chat-v1", "my-company-chat-v2"])
+register_custom_provider(my_finetuned)
+
+# Use in PyTokenCalc
+result = registry.count_tokens("my-company-chat-v1", text, provider="my-finetuned-model")
+```
+
+**Example: User's proprietary model (no external provider)**
+```python
+# User has a proprietary model they've built
+proprietary = CustomProviderCounter(
+    provider_name="proprietary-model",
+    base_url="http://internal-server:5000",
+    api_key="internal-auth-token",
+)
+
+proprietary.register_models(["proprietary-v1", "proprietary-v2"])
+register_custom_provider(proprietary)
+
+# PyTokenCalc works with it seamlessly
+result = registry.count_tokens("proprietary-v1", text, provider="proprietary-model")
+```
+
+**Key Point**: It doesn't matter if the model is trained by OpenAI, Google, Meta, or by the user themselves. PyTokenCalc supports ANY LLM as long as:
+1. There's an API endpoint (even if it's just on localhost)
+2. User registers the model name
+3. Custom token extraction logic is provided if needed
+
+**No provider lock-in. No limitations. Any LLM works.**
 
 ## Custom Token Extraction
 
