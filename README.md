@@ -36,28 +36,30 @@
 
 ## The Problem
 
-You're building an LLM application that uses multiple providers. You need to count tokens accurately and manage rate limits. But here's the nightmare:
+You're building an LLM application. You need to count tokens accurately, predict costs, validate model efficiency, and know which providers are degrading. But right now:
 
-**OpenAI has `tiktoken`.** Different API, different methods.
-**Meta's Llama has HuggingFace tokenizers.** Another integration.
-**Claude? No public tokenizer.** You have to call the API just to count tokens.
-**Gemini? Same problem.** API-only, proprietary.
-**Groq, DeepInfra, Together? They all count differently.** Good luck.
+- **You don't trust your token counts.** Are they accurate? Off by how much? No idea.
+- **Cost predictions are guesses.** You budget $X, spend $Y. No visibility into why.
+- **Model baselines are stale.** When did you last verify they're still valid?
+- **Provider health is invisible.** You find out when your app breaks, not before.
+- **10+ libraries to integrate.** Each with different APIs and update cycles.
 
-You end up with:
-- ❌ 10+ different libraries to install
-- ❌ Different APIs for each provider
-- ❌ Expensive API calls just to count tokens (200-500ms each)
-- ❌ No consistent way to get token counts
-- ❌ Wasted time integrating providers instead of building features
+The nightmare:
+- ❌ No validation layer between your code and provider APIs
+- ❌ Silent errors: wrong counts go undetected until cost reconciliation
+- ❌ Vendor lock-in: switching providers requires rewriting integrations
+- ❌ Zero audit trail: no way to trace which decision used which counts
+- ❌ Dead time: managing integrations instead of building features
 
-**This is madness. You just want to count tokens.**
+**You need a trusted, validated token oracle. Not just a counter.**
 
 ---
 
 ## The Solution: PyTokenCalc
 
-One library. One API. All providers.
+**Self-validating token intelligence for LLM applications.**
+
+One library. One API. All providers. **With quality guarantees.**
 
 ```python
 from pytokencalc.tokenizers import TokenCounterRegistry
@@ -102,7 +104,17 @@ pycount -j "Your text"
 
 ## What You Get
 
-### 1. **True Unified Interface**
+### 1. **Validated Token Counts**
+Every token count is validated against historical baselines, provider reliability, and model efficiency standards. Know your data is accurate before it affects your decisions.
+
+### 2. **Self-Validating API**
+Built-in quality gates catch errors before they cascade:
+- Token accuracy checks (±5% deviation detection)
+- Model efficiency baselines (50+ sample statistical validation)
+- Cost prediction confidence (±15% accuracy validation)
+- Provider health monitoring (uptime, response time, consistency)
+
+### 3. **True Unified Interface**
 One function for 20+ providers (cloud and open-source).
 
 ```python
