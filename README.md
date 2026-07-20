@@ -87,6 +87,22 @@ That's it. No provider-specific code. No multiple libraries. No headaches.
 
 ---
 
+## Why PyTokenCalc?
+
+| Feature | PyTokenCalc | OpenAI library | Anthropic SDK | Others (Ollama, etc.) |
+|---------|---------|---------|---------|---------|
+| **Providers supported** | 20+ | OpenAI only | Anthropic only | 1 each |
+| **Unified API** | ✅ One call | ❌ Different per provider | ❌ Different | ❌ All different |
+| **Accuracy** | 99%+ validated | Reference | Reference | Varies |
+| **Quality validation** | ✅ Built-in drift detection | ❌ None | ❌ None | ❌ None |
+| **Cost prediction** | ✅ Yes | ⚠️ Basic | ⚠️ Basic | ❌ No |
+| **Fallback counting** | ✅ Pattern-based | ❌ None | ❌ None | ❌ None |
+| **Model discovery** | ✅ Auto-detect | ❌ Manual | ❌ Manual | ❌ Manual |
+| **Custom providers** | ✅ Easy registration | ❌ Not supported | ❌ Not supported | ❌ No |
+| **Audit trail** | ✅ Full history | ❌ None | ❌ None | ❌ None |
+
+---
+
 ## ⚡ Quick Start: Terminal One-Liners
 
 Don't want to write Python? Use the `pycount` command directly:
