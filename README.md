@@ -8,6 +8,15 @@
 
 ---
 
+## Why Star This?
+
+- **One library, 20+ LLM providers, 99%+ accuracy** — Replace OpenAI, Anthropic, Google, Ollama, and 15+ more with a single validated API
+- **Quality validation built-in** — Detect counting drift, validate model baselines, and catch silent errors before cost reconciliation
+- **No vendor lock-in** — Switch providers by changing one string; same code for all
+- **Self-healing** — Automatic fallback to pattern-based counting when providers go down
+
+---
+
 ## Release Status
 
 ### v0.9.0 ✅ RELEASED (July 18, 2026)
