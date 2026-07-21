@@ -19,7 +19,7 @@
 
 ## Release Status
 
-### v0.9.0 ✅ RELEASED (July 18, 2026)
+### v0.9.0 RELEASED (July 18, 2026)
 **Universal Token Counting for ANY LLM**
 
 **Providers Supported:**
@@ -54,11 +54,11 @@ You're building an LLM application. You need to count tokens accurately, predict
 - **10+ libraries to integrate.** Each with different APIs and update cycles.
 
 The nightmare:
-- ❌ No validation layer between your code and provider APIs
-- ❌ Silent errors: wrong counts go undetected until cost reconciliation
-- ❌ Vendor lock-in: switching providers requires rewriting integrations
-- ❌ Zero audit trail: no way to trace which decision used which counts
-- ❌ Dead time: managing integrations instead of building features
+- No validation layer between your code and provider APIs
+- Silent errors: wrong counts go undetected until cost reconciliation
+- Vendor lock-in: switching providers requires rewriting integrations
+- Zero audit trail: no way to trace which decision used which counts
+- Dead time: managing integrations instead of building features
 
 **You need a trusted, validated token oracle. Not just a counter.**
 
@@ -92,18 +92,18 @@ That's it. No provider-specific code. No multiple libraries. No headaches.
 | Feature | PyTokenCalc | OpenAI library | Anthropic SDK | Others (Ollama, etc.) |
 |---------|---------|---------|---------|---------|
 | **Providers supported** | 20+ | OpenAI only | Anthropic only | 1 each |
-| **Unified API** | ✅ One call | ❌ Different per provider | ❌ Different | ❌ All different |
+| **Unified API** | One call | Different per provider | Different | All different |
 | **Accuracy** | 99%+ validated | Reference | Reference | Varies |
-| **Quality validation** | ✅ Built-in drift detection | ❌ None | ❌ None | ❌ None |
-| **Cost prediction** | ✅ Yes | ⚠️ Basic | ⚠️ Basic | ❌ No |
-| **Fallback counting** | ✅ Pattern-based | ❌ None | ❌ None | ❌ None |
-| **Model discovery** | ✅ Auto-detect | ❌ Manual | ❌ Manual | ❌ Manual |
-| **Custom providers** | ✅ Easy registration | ❌ Not supported | ❌ Not supported | ❌ No |
-| **Audit trail** | ✅ Full history | ❌ None | ❌ None | ❌ None |
+| **Quality validation** | Built-in drift detection | None | None | None |
+| **Cost prediction** | Yes | Basic | Basic | No |
+| **Fallback counting** | Pattern-based | None | None | None |
+| **Model discovery** | Auto-detect | Manual | Manual | Manual |
+| **Custom providers** | Easy registration | Not supported | Not supported | No |
+| **Audit trail** | Full history | None | None | None |
 
 ---
 
-## ⚡ Quick Start: Terminal One-Liners
+## Quick Start: Terminal One-Liners
 
 Don't want to write Python? Use the `pycount` command directly:
 
@@ -123,7 +123,7 @@ pycount -j "Your text"
 # {"model": "gpt-4", "tokens": 2, "input": 2, ...}
 ```
 
-**→ [Full CLI Guide](QUICK_START_CLI.md)**
+** [Full CLI Guide](QUICK_START_CLI.md)**
 
 ---
 
@@ -134,9 +134,9 @@ Every token count is validated against historical baselines, provider reliabilit
 
 ### 2. **Self-Validating API**
 Built-in quality gates catch errors before they cascade:
-- Token accuracy checks (±5% deviation detection)
+- Token accuracy checks (5% deviation detection)
 - Model efficiency baselines (50+ sample statistical validation)
-- Cost prediction confidence (±15% accuracy validation)
+- Cost prediction confidence (15% accuracy validation)
 - Provider health monitoring (uptime, response time, consistency)
 
 ### 3. **True Unified Interface**
@@ -145,16 +145,16 @@ One function for 20+ providers (cloud and open-source).
 ```python
 # Works for everything
 models = [
-    "gpt-4o",
-    "claude-3-5-sonnet",
-    "gemini-2-flash",
-    "llama-70b",
-    "mistral-large",
+ "gpt-4o",
+ "claude-3-5-sonnet",
+ "gemini-2-flash",
+ "llama-70b",
+ "mistral-large",
 ]
 
 for model in models:
-    result = registry.count_tokens(model, "Your text")
-    print(f"{model}: {result.input_tokens} tokens")
+ result = registry.count_tokens(model, "Your text")
+ print(f"{model}: {result.input_tokens} tokens")
 ```
 
 ### 2. **Smart Routing: Fast When You Can, Accurate When You Need To**
@@ -164,10 +164,10 @@ for model in models:
 
 ```python
 # Automatically uses tiktoken (fast, local, free)
-gpt_tokens = registry.count_tokens("gpt-4o", text)  # 5ms
+gpt_tokens = registry.count_tokens("gpt-4o", text) # 5ms
 
 # Automatically caches and reuses
-gpt_tokens = registry.count_tokens("gpt-4o", text)  # 0ms (cached)
+gpt_tokens = registry.count_tokens("gpt-4o", text) # 0ms (cached)
 ```
 
 ### 3. **99%+ Accuracy vs Official Counts**
@@ -181,13 +181,13 @@ Count tokens for multiple prompts at once.
 
 ```python
 results = registry.count_batch([
-    {"model": "gpt-4o", "text": "Prompt 1"},
-    {"model": "llama-70b", "text": "Prompt 2"},
-    {"model": "claude-3-5-sonnet", "text": "Prompt 3"},
+ {"model": "gpt-4o", "text": "Prompt 1"},
+ {"model": "llama-70b", "text": "Prompt 2"},
+ {"model": "claude-3-5-sonnet", "text": "Prompt 3"},
 ])
 
 for result in results:
-    print(f"{result.input_tokens} tokens")
+ print(f"{result.input_tokens} tokens")
 ```
 
 ---
@@ -222,14 +222,14 @@ cd pytokencalc
 
 # Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate # On Windows: venv\Scripts\activate
 
 # Install in development mode with dev dependencies
 pip install -e ".[dev,tokenizers]"
 
 # Run tests
 pytest tests/
-make test    # or use Makefile
+make test # or use Makefile
 ```
 
 **Requirements:**
@@ -253,7 +253,7 @@ result = registry.count_tokens("gpt-4o", prompt)
 print(f"Input tokens: {result.input_tokens}")
 print(f"Latency: {result.latency_ms}ms")
 print(f"Was cached: {result.cached}")
-print(f"Source: {result.source}")  # "local", "api", or "formula"
+print(f"Source: {result.source}") # "local", "api", or "formula"
 ```
 
 Output:
@@ -295,8 +295,8 @@ llama_tokens = len(llama_tokenizer.encode(text))
 
 client = anthropic.Anthropic()
 claude_response = client.messages.count_tokens(
-    model="claude-3-5-sonnet",
-    messages=[{"role": "user", "content": text}]
+ model="claude-3-5-sonnet",
+ messages=[{"role": "user", "content": text}]
 )
 claude_tokens = claude_response.input_tokens
 
@@ -320,19 +320,19 @@ claude_tokens = registry.count_tokens("claude-3-5-sonnet", text).input_tokens
 
 ## Supported Providers
 
-### 🌐 Cloud LLM APIs (20+)
+### Cloud LLM APIs (20+)
 **Explicit Support:**
-- ✅ OpenAI (GPT-4, GPT-3.5-turbo)
-- ✅ Anthropic (Claude 3 + pattern: `claude-*`)
-- ✅ Google (Gemini, pattern: `gemini-*`)
-- ✅ Cohere (Command, pattern: `command-*`)
-- ✅ Azure OpenAI (same as OpenAI)
+- OpenAI (GPT-4, GPT-3.5-turbo)
+- Anthropic (Claude 3 + pattern: `claude-*`)
+- Google (Gemini, pattern: `gemini-*`)
+- Cohere (Command, pattern: `command-*`)
+- Azure OpenAI (same as OpenAI)
 - Plus: RunPod, Together AI, Replicate, HuggingFace Inference, and more
 
 **Dynamic Support:**
 Any cloud provider with an API endpoint (RunPod, Llama Labs, custom backends)
 
-### 💻 Local Inference Engines (7+)
+### Local Inference Engines (7+)
 **Auto-Detected:**
 - LM Studio (localhost:1234)
 - LocalAI (localhost:8080)
@@ -342,7 +342,7 @@ Any cloud provider with an API endpoint (RunPod, Llama Labs, custom backends)
 - Jan (localhost:1337)
 - Vllm (localhost:8000)
 
-### 🦙 Open-Source Models
+### Open-Source Models
 **Built-in Ollama Support:**
 - Any model you pull into Ollama
 - Automatic model discovery
@@ -352,7 +352,7 @@ Any cloud provider with an API endpoint (RunPod, Llama Labs, custom backends)
 - 14+ known models supported
 - Any HuggingFace model works
 
-### 🚀 Bring Your Own Model (BYOM)
+### Bring Your Own Model (BYOM)
 **Completely Custom:**
 - Your fine-tuned models
 - Your proprietary models
@@ -361,7 +361,7 @@ Any cloud provider with an API endpoint (RunPod, Llama Labs, custom backends)
 
 Just expose an API and register it with PyTokenCalc.
 
-### 🔍 Model Discovery
+### Model Discovery
 Don't know which provider? PyTokenCalc discovers it:
 ```python
 from pytokencalc.model_discovery import ModelDiscovery
@@ -384,15 +384,15 @@ Use any LLM provider, including proprietary or self-hosted:
 
 ```python
 from pytokencalc.tokenizers.custom_provider_counter import (
-    CustomProviderCounter,
-    register_custom_provider,
+ CustomProviderCounter,
+ register_custom_provider,
 )
 
 # Register your RunPod endpoint
 runpod = CustomProviderCounter(
-    provider_name="runpod",
-    base_url="https://api.runpod.io/v2/YOUR_ID",
-    api_key="your-key"
+ provider_name="runpod",
+ base_url="https://api.runpod.io/v2/YOUR_ID",
+ api_key="your-key"
 )
 runpod.register_models(["llama-2-7b", "mistral-7b"])
 register_custom_provider(runpod)
@@ -404,16 +404,16 @@ registry.count_tokens("llama-2-7b", text, provider="runpod")
 See [CUSTOM_PROVIDERS.md](CUSTOM_PROVIDERS.md) for 10+ examples.
 
 ### Platform-Aware Token Counting
-⚠️ **Important:** Same model on different platforms may have different token counts
+ **Important:** Same model on different platforms may have different token counts
 
 ```python
 # Same text, different platforms = different results
 result_local = registry.count_tokens("llama-2-7b", text, provider="ollama")
 result_cloud = registry.count_tokens("llama-2-7b", text, provider="runpod")
 
-print(result_local.platform)      # "ollama"
-print(result_cloud.platform)      # "runpod"
-print(result_local.timestamp)     # When it was counted
+print(result_local.platform) # "ollama"
+print(result_cloud.platform) # "runpod"
+print(result_local.timestamp) # When it was counted
 ```
 
 Results are kept separate by platform and timestamp. Never aggregate or mix.
@@ -433,7 +433,7 @@ print(f"Tokens: {result2.input_tokens}, Latency: {result2.latency_ms}ms")
 # Output: Tokens: 101, Latency: 120ms (different!)
 
 # Both are tracked with timestamps
-print(result1.timestamp, result2.timestamp)  # Different times
+print(result1.timestamp, result2.timestamp) # Different times
 ```
 
 ---
@@ -449,14 +449,14 @@ registry = TokenCounterRegistry()
 
 # Single count
 result = registry.count_tokens(
-    model="gpt-4o",
-    text="Your prompt here"
+ model="gpt-4o",
+ text="Your prompt here"
 )
 
-print(result.input_tokens)    # int - token count
-print(result.latency_ms)      # float - milliseconds taken
-print(result.cached)          # bool - came from cache?
-print(result.source)          # str - "local", "api", or "formula"
+print(result.input_tokens) # int - token count
+print(result.latency_ms) # float - milliseconds taken
+print(result.cached) # bool - came from cache?
+print(result.source) # str - "local", "api", or "formula"
 ```
 
 ### Batch Count
@@ -464,12 +464,12 @@ print(result.source)          # str - "local", "api", or "formula"
 ```python
 # Multiple counts in one call
 results = registry.count_batch([
-    {"model": "gpt-4o", "text": "Text 1"},
-    {"model": "llama-70b", "text": "Text 2"},
+ {"model": "gpt-4o", "text": "Text 1"},
+ {"model": "llama-70b", "text": "Text 2"},
 ])
 
 for result in results:
-    print(f"{result.input_tokens} tokens")
+ print(f"{result.input_tokens} tokens")
 ```
 
 ### Cache Stats
@@ -478,8 +478,8 @@ for result in results:
 cache = registry.tokenizers[0].cache
 stats = cache.get_stats()
 
-print(stats.hit_rate)    # Cache hit rate (0-1)
-print(stats.size)        # Number of cached entries
+print(stats.hit_rate) # Cache hit rate (0-1)
+print(stats.size) # Number of cached entries
 print(stats.total_calls) # Total counts requested
 ```
 
@@ -490,8 +490,8 @@ print(stats.total_calls) # Total counts requested
 ### Use Case 1: Monitor Token Usage
 ```python
 def log_request(model, prompt, response):
-    tokens = registry.count_tokens(model, prompt)
-    print(f"Request used {tokens.input_tokens} tokens")
+ tokens = registry.count_tokens(model, prompt)
+ print(f"Request used {tokens.input_tokens} tokens")
 
 # Call it automatically on every LLM invocation
 log_request("gpt-4o", "Hello", response)
@@ -503,13 +503,13 @@ MAX_TOKENS_PER_HOUR = 1_000_000
 used_tokens = 0
 
 for prompt in user_prompts:
-    token_count = registry.count_tokens("claude-3-5-sonnet", prompt)
-    if used_tokens + token_count.input_tokens > MAX_TOKENS_PER_HOUR:
-        print("Budget exceeded!")
-        break
-    
-    used_tokens += token_count.input_tokens
-    response = call_llm(prompt)
+ token_count = registry.count_tokens("claude-3-5-sonnet", prompt)
+ if used_tokens + token_count.input_tokens > MAX_TOKENS_PER_HOUR:
+ print("Budget exceeded!")
+ break
+ 
+ used_tokens += token_count.input_tokens
+ response = call_llm(prompt)
 ```
 
 ### Use Case 3: Model Comparison
@@ -517,8 +517,8 @@ for prompt in user_prompts:
 text = "Your 1000-word essay..."
 
 for model in ["gpt-4o", "claude-3-5-sonnet", "gemini-2-flash"]:
-    tokens = registry.count_tokens(model, text).input_tokens
-    print(f"{model}: {tokens} tokens")
+ tokens = registry.count_tokens(model, text).input_tokens
+ print(f"{model}: {tokens} tokens")
 
 # See which model would be cheapest
 ```
@@ -591,10 +591,10 @@ result = registry.count_tokens("text-embedding-3-large", "Hello world")
 PyTokenCalc counts tokens accurately. That's what it does.
 
 For advanced use cases like token intelligence, optimization, or analytics, use OpenAnchor (which bundles PyTokenCalc) or build on PyTokenCalc's token counting API:
-- 🔍 Token intelligence & attribution (use OpenAnchor)
-- 📊 Pattern detection & anomaly alerts (use OpenAnchor)
-- 🎯 Optimization recommendations (use OpenAnchor)
-- 📈 Plan capacity and model comparison (build on PyTokenCalc)
+- Token intelligence & attribution (use OpenAnchor)
+- Pattern detection & anomaly alerts (use OpenAnchor)
+- Optimization recommendations (use OpenAnchor)
+- Plan capacity and model comparison (build on PyTokenCalc)
 
 ---
 
@@ -614,7 +614,7 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 **PyTokenCalc** solves one problem perfectly: unified token counting across all LLM providers.
 
-**Author**: Georgi Mammen Mullassery (@Mullassery)  
+**Author**: Georgi Mammen Mullassery (@Mullassery) 
 **Repository**: https://github.com/Mullassery/PyTokenCalc
 
 ---
